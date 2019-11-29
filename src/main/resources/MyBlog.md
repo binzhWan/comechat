@@ -479,3 +479,28 @@ public class MyAuthenticationFailureHandler implements AuthenticationFailureHand
         .failureHandler(MyAuthenticationFailureHandler);       
 
 ```
+#4 ajax中遇到的问题
+##* jquery循环遍历绑定点击事件
+```html
+    for (var i=0; i<friendclickname.length; i++) {
+                var name=friendclickname[i];
+                console.log(name);
+                    $("." + name).bind("click", {index:name},clickHandler);
+            }
+            function clickHandler(event) {
+
+                    $.ajax({
+                        url:"clickedFriend",
+                        type:"post",
+                        contentType:"application/json;charset=UTF-8",
+                        data:JSON.stringify({"friendName":event.data.index,"username":username}),
+                        datatype:"json",
+                        success:function (data) {
+                            $(".message-content").html(data);
+                        }
+                    })
+            }
+```
+## * 前后端数据交互
+###* 若往后端传入json格式的字符串，则需在前台指定contentType:"application/json;charset=UTF-8"
+###* 后台需要在参数中加入 @requesrbody 注解 

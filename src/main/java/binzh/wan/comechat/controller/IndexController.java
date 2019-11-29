@@ -18,5 +18,9 @@ public class IndexController {
         System.out.println("toLogin");
         return "login";
     }
-
+//    @RequestMapping("/toSuccessLogin")
+//    public String toSuccessLogin(Model model){
+//        model.addAttribute("username","用户名或密码错误");
+//        return "/toHandpage";
+//    }
 }

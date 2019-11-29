@@ -17,6 +17,5 @@ public class User {
     private String signature;
     private String tel;
     private String gender;
-    private Date birthday;
     private String role;
 }

@@ -10,4 +10,19 @@
     <select id="queryUserByUsername"   parameterType="String" resultType="User">
         select  * from USER where username=#{username};
     </select>
+    <insert id="addUserByRegisting" parameterType="User">
+        insert into user(username,password,email,tel,gender,role) values (#{username},#{password},#{email},#{tel},#{gender},#{role});
+    </insert>
+    <select id="queryFriendsIdById" parameterType="Integer" resultType="Integer">
+        select friend.friendId from friend where userId=#{id};
+    </select>
+    <select id="queryFriendsByFriendId" resultType="User">
+        select * from user where id in
+        <foreach collection="list" index="index" item="friendId" open="(" close=")" separator=",">
+            #{friendId}
+        </foreach>
+    </select>
+    <select id="queryHistoryMsgByFromIDAndToId" resultType="String" >
+        select msg.message from msg where fromId=#{fromId} and toId=#{toId}
+    </select>
 </mapper>

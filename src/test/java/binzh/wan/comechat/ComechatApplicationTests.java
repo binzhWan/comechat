@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
+
 @SpringBootTest
 class ComechatApplicationTests {
 
@@ -13,7 +15,9 @@ class ComechatApplicationTests {
     UserServiceImpl userService;
     @Test
     void contextLoads() {
-        User user = userService.queryUserById(2);
-        System.out.println(user);
+        List<String> strings = userService.queryHistoryMsgByFromIDAndToId(2, 3);
+        for (String string : strings) {
+            System.out.println(string);
+        }
     }
 }

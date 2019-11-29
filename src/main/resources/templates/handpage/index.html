@@ -1,1306 +1,1549 @@
-<!DOCTYPE HTML>
-<html lang="en"  xmlns:th="http://www.thymeleaf.org">
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-<title>Home</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="keywords" content="Baxster Responsive web template, Bootstrap Web Templates, Flat Web Templates, Android Compatible web template, 
-SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, SonyEricsson, Motorola web design" />
-<script type="application/x-javascript"> addEventListener("load", function() { setTimeout(hideURLbar, 0); }, false); function hideURLbar(){ window.scrollTo(0,1); } </script>
-<!-- Bootstrap Core CSS -->
-<link th:href="@{css/bootstrap.css}" rel='stylesheet' type='text/css' />
-<!-- Custom CSS -->
-<link th:href="@{css/style.css}" rel='stylesheet' type='text/css' />
-<!-- font CSS -->
-<link rel="icon" th:href="@{favicon.ico}" type="image/x-icon" >
-<!-- font-awesome icons -->
-<link th:href="@{css/font-awesome.css}" rel="stylesheet">
-<!-- //font-awesome icons -->
-<!-- chart -->
-<script th:src="@{js/Chart.js}"></script>
-<!-- //chart -->
- <!-- js-->
-<script th:src="@{js/jquery-1.11.1.min.js}"></script>
-<script th:src="@{js/modernizr.custom.js}"></script>
-<!--webfonts-->
-<link href='https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300,300italic,400italic,700,700italic' rel='stylesheet' type='text/css'>
-<!--//webfonts-->
-<!--animate-->
-<link th:href="@{css/animate.css}" rel="stylesheet" type="text/css" media="all">
-<script th:src="@{js/wow.min.js}"></script>
-	<script>
-		 new WOW().init();
-	</script>
-<!--//end-animate-->
-<!-- Metis Menu -->
-<script th:src="@{js/metisMenu.min.js}"></script>
-<script th:src="@{js/custom.js}"></script>
-<link th:href="@{css/custom.css}" rel="stylesheet">
-<!--//Metis Menu -->
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Soho - Chat and Discussion Platform</title>
+
+    <!-- Favicon -->
+    <link rel="icon" th:href="@{/hdist/media/img/favicon.png}" type="image/png">
+
+    <!-- Soho css -->
+    <link rel="stylesheet"  th:href="@{/hdist/css/soho.min.css}">
+    <script th:inline="javascript">
+        var friendName;
+        var friends=[[${friends}]];
+        var friendclickname=new Array();
+        for (var i=0;i<friends.length;i++) {
+            friendclickname[i] = friends[i].username;
+        }
+        console.log("......"+friendclickname);
+        console.log(friends);
+        var username=[[${username}]];
+        var ws=null;
+        var url="ws://localhost:8080/websocket/" + username;
+        window.onload =function () {
+            console.log(url);
+            if ('WebSocket' in window) {
+                ws = new WebSocket(url);
+            } else if ('MozWebSocket' in window) {
+                ws = new MozWebsocket(url);
+            } else {
+                alert('WebSocket is not supported by browser.');
+                return;
+            }
+            ws.onopen = function () {
+                console.log("WebSokcket is connected");
+            }
+            //监听服务器发送过来的所有信息
+            ws.onmessage = function (event) {
+                eval("var result=" + event.data);
+                // if (result.alert != undefined) {
+                //     $("#historyMsg").append(result.alert + "<br/>");
+                // }
+                if (result.from != undefined) {
+                    $("#historyMsg").append(result.from + " " + result.date + "说:<br/>" + result.sendMsg + "<br/>");
+                    //打印接受过来的消息在消息记录上
+                }
+            }
+            for (var i=0; i<friendclickname.length; i++) {
+                var name=friendclickname[i];
+                console.log(name);
+                    $("." + name).bind("click", {index:name},clickHandler);
+            }
+            function clickHandler(event) {
+
+                    $.ajax({
+                        url:"clickedFriend",
+                        type:"post",
+                        contentType:"application/json;charset=UTF-8",
+                        data:JSON.stringify({"friendName":event.data.index,"username":username}),
+                        datatype:"json",
+                        success:function (data) {
+                            var json=eval(data);
+                            // console.log("......"+data);
+                            // console.log(json.Mymessage);
+                            // console.log(json.Mymessage);
+                            var chat_body = $('.layout .content .chat .chat-body');
+                            $(".message-content").append(json.MyMessage);
+                            for (var i=0;i<json.Mymessage.length;i++){
+                                var message=(json.Mymessage)[i];
+                                $('.layout .content .chat .chat-body .messages').append('<div class="message-item "><div class="message-content">' + message + '</div><div class="message-action">PM 14:25 "></div></div>');
+
+                                chat_body.scrollTop(chat_body.get(0).scrollHeight, -1).niceScroll({
+                                    cursorcolor: 'rgba(66, 66, 66, 0.20)',
+                                    cursorwidth: "4px",
+                                    cursorborder: '0px'
+                                });
+                            }
+
+                            // })
+
+                        }
+                    })
+            }
+        }
+        // $("#qwe").each(function (i) {
+        //     $(this).click(function () {
+        //         alert("i");
+        //         $(".new-message-count").html("0");
+        //         if ($(".new-message-count").html()=="0"){
+        //             $(".new-message-count").toggle();
+        //         }
+        //         friendName=$("#friendName").html();
+        //         console.log(friendName);
+        //         $.ajax({
+        //             url:"clickedFriend",
+        //             type:"post",
+        //             data:"friendName="+friendName,
+        //             datatype:"json",
+        //             success:function (data) {
+        //                 $(".message-content").html(data);
+        //             }
+        //         })
+        //     })
+        // })
+
+
+
+
+        function send() {
+            var toId="${sessionScope.Fid}";
+            console.log(toName+".....");
+            var value=$("#messageInput").val();
+            $("#historyMsg").append("我:"+value+"<br/>");
+            console.log(value);
+            var object=null;
+            object={
+                toName:toName,
+                msg:value,
+                type:1,
+                toId:toId,
+            };
+            var json=JSON.stringify(object);
+            ws.send(json);
+            var container = document.getElementById('historyMsg');
+            container.scrollTop = container.scrollHeight;
+            $("#messageInput").val("");
+        }
+
+    </script>
 </head>
-<body class="cbp-spmenu-push">
-	<div class="main-content">
-		<!--left-fixed -navigation-->
-		<div class="sidebar" role="navigation">
-            <div class="navbar-collapse">
-				<nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right dev-page-sidebar mCustomScrollbar _mCS_1 mCS-autoHide mCS_no_scrollbar" id="cbp-spmenu-s1">
-					<div class="scrollbar scrollbar1">
-						<ul class="nav" id="side-menu">
-							<li>
-								<a th:href="@{index.html}" class="active"><i class="fa fa-home nav_icon"></i>Dashboard</a>
-							</li>
-							<li>
-								<a th:href="@{#}"><i class="fa fa-cogs nav_icon"></i>Components <span class="fa arrow"></span></a>
-								<ul class="nav nav-second-level collapse">
-									<li>
-										<a th:href="@{progressbar.html}">Progressbar</a>
-									</li>
-									<li>
-										<a th:href="@{grid.html}">Grid</a>
-									</li>
-								</ul>
-								<!-- /nav-second-level -->
-							</li>
-							<li>
-								<a th:href="@{#}"><i class="fa fa-book nav_icon"></i>Elements <span class="fa arrow"></span></a>
-								<ul class="nav nav-second-level collapse">
-									<li>
-										<a th:href="@{buttons.html}">Buttons</a>
-									</li>
-									<li>
-										<a th:href="@{typography.html}">Typography</a>
-									</li>
-								</ul>
-								<!-- /nav-second-level -->
-							</li>
-							<li>
-								<a th:href="@{widgets.html}"><i class="fa fa-th-large nav_icon"></i>Widgets</a>
-							</li>
+<body>
 
-							<li>
-								<a th:href="@{#}"><i class="fa fa-check-square-o nav_icon"></i>Forms<span class="fa arrow"></span></a>
-								<ul class="nav nav-second-level collapse">
-									<li>
-										<a th:href="@{inputs.html}">Inputs</a>
-									</li>
-									<li>
-										<a th:href="@{validation.html}">Form Validation</a>
-									</li>
-								</ul>
-								<!-- //nav-second-level -->
-							</li>
-							<li>
-								<a th:href="@{#}"><i class="fa fa-envelope nav_icon"></i>Mailbox<span class="fa arrow"></span></a>
-								<ul class="nav nav-second-level collapse">
-									<li>
-										<a th:href="@{inbox.html}">Inbox</a>
-									</li>
-									<li>
-										<a th:href="@{compose.html}">Compose email</a>
-									</li>
-								</ul>
-								<!-- //nav-second-level -->
-							</li>
-							<li>
-								<a th:href="@{maps.html}"><i class="fa fa-location-arrow nav_icon"></i>Maps</a>
-							</li>
-							<li>
-								<a th:href="@{#}"><i class="fa fa-file-text-o nav_icon"></i>Pages<span class="fa arrow"></span></a>
-								<ul class="nav nav-second-level collapse">
-									<li>
-										<a th:href="@{login.html}">Login</a>
-									</li>
-									<li>
-										<a th:href="@{signup.html}">SignUp</a>
-									</li>
-									<li>
-										<a th:href="@{blank-page.html}">Blank Page</a>
-									</li>
-								</ul>
-								<!-- //nav-second-level -->
-							</li>
-							<li>
-								<a th:href="@{charts.html}" class="chart-nav"><i class="fa fa-bar-chart nav_icon"></i>Charts</a>
-							</li>
-							<li>
-								<a th:href="@{#}" class="chart-nav"><i class="fa fa-list-ul nav_icon"></i>Extras<span class="fa arrow"></span></a>
-								<ul class="nav nav-second-level collapse">
-									<li>
-										<a th:href="@{tables.html}">Tables</a>
-									</li>
-									<li>
-										<a th:href="@{404.html}">404 Page</a>
-									</li>
-								</ul>
-								<!-- //nav-second-level -->
-							</li>
-						</ul>
-					</div>
-					<!-- //sidebar-collapse -->
-				</nav>
-			</div>
-		</div>
-		<!--left-fixed -navigation-->
-		<!-- header-starts -->
-		<div class="sticky-header header-section ">
-			<div class="header-left">
-				<!--logo -->
-				<div class="logo">
-					<a th:href="@{index.html}">
-						<ul>
-							<li><img th:src="@{images/logo1.png}" alt="" /></li>
-							<li><h1>Baxster</h1></li>
-							<div class="clearfix"> </div>
-						</ul>
-					</a>
-				</div>
-				<!--//logo-->
-				<div class="header-right header-right-grid">
-					<div class="profile_details_left"><!--notifications of menu start -->
-						<ul class="nofitications-dropdown">
-							<li class="dropdown head-dpdn">
-								<a th:href="@{#}" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-envelope"></i><span class="badge">3</span></a>
-								<ul class="dropdown-menu anti-dropdown-menu">
-									<li>
-										<div class="notification_header">
-											<h3>You have 3 new messages</h3>
-										</div>
-									</li>
-									<li><a th:href="@{#}">
-									   <div class="user_img"><img th:src="@{images/1.png}" alt=""></div>
-									   <div class="notification_desc">
-										<p>Lorem ipsum dolor amet</p>
-										<p><span>1 hour ago</span></p>
-										</div>
-									   <div class="clearfix"></div>
-									</a></li>
-									<li class="odd"><a th:href="@{#}">
-										<div class="user_img"><img th:src="@{images/2.png}" alt=""></div>
-									   <div class="notification_desc">
-										<p>Lorem ipsum dolor amet </p>
-										<p><span>1 hour ago</span></p>
-										</div>
-									  <div class="clearfix"></div>
-									</a></li>
-									<li><a th:href="@{#}">
-									   <div class="user_img"><img th:src="@{images/3.png}" alt=""></div>
-									   <div class="notification_desc">
-										<p>Lorem ipsum dolor amet </p>
-										<p><span>1 hour ago</span></p>
-										</div>
-									   <div class="clearfix"></div>
-									</a></li>
-									<li>
-										<div class="notification_bottom">
-											<a th:href="@{#}">See all messages</a>
-										</div>
-									</li>
-								</ul>
-							</li>
-							<li class="dropdown head-dpdn">
-								<a th:href="@{#}" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fa fa-bell"></i><span class="badge blue">3</span></a>
-								<ul class="dropdown-menu anti-dropdown-menu">
-									<li>
-										<div class="notification_header">
-											<h3>You have 3 new notification</h3>
-										</div>
-									</li>
-									<li><a th:href="@{#}">
-										<div class="user_img"><img th:src="@{images/2.png}" alt=""></div>
-									   <div class="notification_desc">
-										<p>Lorem ipsum dolor amet</p>
-										<p><span>1 hour ago</span></p>
-										</div>
-									  <div class="clearfix"></div>
-									 </a></li>
-									 <li class="odd"><a th:href="@{#}">
-										<div class="user_img"><img th:src="@{images/1.png}" alt=""></div>
-									   <div class="notification_desc">
-										<p>Lorem ipsum dolor amet </p>
-										<p><span>1 hour ago</span></p>
-										</div>
-									   <div class="clearfix"></div>
-									 </a></li>
-									 <li><a th:href="@{#}">
-										<div class="user_img"><img th:src="@{images/3.png}" alt=""></div>
-									   <div class="notification_desc">
-										<p>Lorem ipsum dolor amet </p>
-										<p><span>1 hour ago</span></p>
-										</div>
-									   <div class="clearfix"></div>
-									 </a></li>
-									 <li>
-										<div class="notification_bottom">
-											<a th:href="@{#}">See all notifications</a>
-										</div>
-									</li>
-								</ul>
-							</li>
-							<li class="dropdown head-dpdn">
-								<a th:href="@{#}" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fa fa-tasks"></i><span class="badge blue1">15</span></a>
-								<ul class="dropdown-menu anti-dropdown-menu">
-									<li>
-										<div class="notification_header">
-											<h3>You have 8 pending task</h3>
-										</div>
-									</li>
-									<li><a th:href="@{#}">
-										<div class="task-info">
-											<span class="task-desc">Database update</span><span class="percentage">40%</span>
-											<div class="clearfix"></div>
-										</div>
-										<div class="progress progress-striped active">
-											<div class="bar yellow" style="width:40%;"></div>
-										</div>
-									</a></li>
-									<li><a th:href="@{#}">
-										<div class="task-info">
-											<span class="task-desc">Dashboard done</span><span class="percentage">90%</span>
-										   <div class="clearfix"></div>
-										</div>
-										<div class="progress progress-striped active">
-											 <div class="bar green" style="width:90%;"></div>
-										</div>
-									</a></li>
-									<li><a th:href="@{#}">
-										<div class="task-info">
-											<span class="task-desc">Mobile App</span><span class="percentage">33%</span>
-											<div class="clearfix"></div>
-										</div>
-									   <div class="progress progress-striped active">
-											 <div class="bar red" style="width: 33%;"></div>
-										</div>
-									</a></li>
-									<li><a th:href="@{#}">
-										<div class="task-info">
-											<span class="task-desc">Issues fixed</span><span class="percentage">80%</span>
-										   <div class="clearfix"></div>
-										</div>
-										<div class="progress progress-striped active">
-											 <div class="bar  blue" style="width: 80%;"></div>
-										</div>
-									</a></li>
-									<li>
-										<div class="notification_bottom">
-											<a th:href="@{#}">See all pending tasks</a>
-										</div>
-									</li>
-								</ul>
-							</li>
-						</ul>
-						<div class="clearfix"> </div>
-					</div>
-				</div>
+<!-- page loading -->
+<div class="page-loading"></div>
+<!-- ./ page loading -->
 
-
-				<div class="clearfix"> </div>
-			</div>
-			<!--search-box-->
-				<div class="search-box">
-					<form class="input">
-						<input class="sb-search-input input__field--madoka" placeholder="Search..." type="search" id="input-31" />
-					</form>
-				</div>
-				<!--//end-search-box-->
-			<div class="header-right">
-
-				<!--notification menu end -->
-				<div class="profile_details">
-					<ul>
-						<li class="dropdown profile_details_drop">
-							<a th:href="@{#}" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-								<div class="profile_img">
-									<span class="prfil-img"><img th:src="@{images/a.png}" alt=""> </span>
-									<div class="clearfix"></div>
-								</div>
-							</a>
-							<ul class="dropdown-menu drp-mnu">
-								<li> <a th:href="@{#}"><i class="fa fa-cog"></i> Settings</a> </li>
-								<li> <a th:href="@{#}"><i class="fa fa-user"></i> Profile</a> </li>
-								<li> <a th:href="@{#}"><i class="fa fa-sign-out"></i> Logout</a> </li>
-							</ul>
-						</li>
-					</ul>
-				</div>
-				<!--toggle button start-->
-				<button id="showLeftPush"><i class="fa fa-bars"></i></button>
-				<!--toggle button end-->
-				<div class="clearfix"> </div>
-			</div>
-			<div class="clearfix"> </div>
-		</div>
-		<!-- //header-ends -->
-		<!-- main content start-->
-		<div id="page-wrapper">
-			<div class="main-page">
-				<!-- four-grids -->
-				<div class="row four-grids">
-					<div class="col-md-3 ticket-grid">
-						<div class="tickets">
-							<div class="grid-left">
-								<div class="book-icon">
-									<i class="fa fa-book"></i>
-								</div>
-							</div>
-							<div class="grid-right">
-								<h3>Tickets <span>Answered</span></h3>
-								<p>452</p>
-							</div>
-							<div class="clearfix"> </div>
-						</div>
-					</div>
-					<div class="col-md-3 ticket-grid">
-						<div class="tickets">
-							<div class="grid-left">
-								<div class="book-icon">
-									<i class="fa fa-rocket"></i>
-								</div>
-							</div>
-							<div class="grid-right">
-								<h3>New <span>Projects</span></h3>
-								<p>745</p>
-							</div>
-							<div class="clearfix"> </div>
-						</div>
-					</div>
-					<div class="col-md-3 ticket-grid">
-						<div class="tickets">
-							<div class="grid-left">
-								<div class="book-icon">
-									<i class="fa fa-bar-chart"></i>
-								</div>
-							</div>
-							<div class="grid-right">
-								<h3>Our <span>Status</span></h3>
-								<p>125</p>
-							</div>
-							<div class="clearfix"> </div>
-						</div>
-					</div>
-					<div class="col-md-3 ticket-grid">
-						<div class="tickets">
-							<div class="grid-left">
-								<div class="book-icon">
-									<i class="fa fa-user"></i>
-								</div>
-							</div>
-							<div class="grid-right">
-								<h3>Daily <span>Visitors</span></h3>
-								<p>7462</p>
-							</div>
-							<div class="clearfix"> </div>
-						</div>
-					</div>
-					<div class="clearfix"> </div>
-				</div>
-				<!-- //four-grids -->
-				<!--row-->
-				<div class="row">
-					<div class="col-md-6">
-						<div class="panel panel-widget">
-							<div class="panel-title">
-							  Candlestick colors
-							  <ul class="panel-tools">
-								<li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-								<li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-								<li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
-							  </ul>
-							</div>
-							<div class="panel-body">
-								<!-- candlestick -->
-								<div class="candlestick">
-									<script type="text/javascript">
-									  // Generate data
-
-									  var data = [];
-
-									  var time = new Date('Dec 1, 2013 12:00').valueOf();
-
-									  var h = Math.floor(Math.random() * 100);
-									  var l = h - Math.floor(Math.random() * 20);
-									  var o = h - Math.floor(Math.random() * (h - l));
-									  var c = h - Math.floor(Math.random() * (h - l));
-
-									  var v = Math.floor(Math.random() * 1000);
-
-									  for (var i = 0; i < 30; i++) {
-										data.push([time, o, h, l, c, v]);
-										h += Math.floor(Math.random() * 10 - 5);
-										l = h - Math.floor(Math.random() * 20);
-										o = h - Math.floor(Math.random() * (h - l));
-										c = h - Math.floor(Math.random() * (h - l));
-										v += Math.floor(Math.random() * 100 - 50);
-										time += 30 * 60000; // Add 30 minutes
-									  }
-									</script>
-									<div id="example-8"></div>
-
-									<script type="text/javascript">
-									  $(function() {
-										$('#example-8').jqCandlestick({
-										  data: data,
-										  theme: 'light',
-										  yAxis: [{
-											height: 7, // 7 / (7 + 3)
-										  }, {
-											height: 3, // 3 / (7 + 3)
-										  }],
-										  series: [{
-											type: 'candlestick',
-											upStroke: '#0C0',
-											downStroke: '#C00',
-											downColor: 'rgba(255, 0, 0, 0.4)',
-										  }, {
-											type: 'column',
-											name: 'VOLUME',
-											yAxis: 1,
-											stroke: '#00C',
-											color: 'rgba(0, 0, 255, 0.5)',
-										  }],
-										});
-									  });
-									</script>
-								</div>
-								<!-- //candlestick -->
-							</div>
-						</div>
-					</div>
-					<div class="copyrights">Collect from <a href="http://www.cssmoban.com/" >企业网站模板</a></div>
-
-					<div class="col-md-6">
-						<div class="panel panel-widget">
-							<div class="panel-title">
-							  Lines and points
-							  <ul class="panel-tools">
-								<li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-								<li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-								<li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
-							  </ul>
-							</div>
-							<div class="panel-body">
-								<div class="lines-points">
-									<div id="example-4"></div>
-									<script type="text/javascript">
-									  $(function() {
-										$('#example-4').jqCandlestick({
-										  data: data,
-										  theme: 'light',
-										  series: [{
-											type: 'line',
-										  }, {
-											type: 'point',
-										  }],
-										});
-									  });
-									</script>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="clearfix"> </div>
-				</div>
-				<!--//row-->
-				<!--row-->
-				<div class="row">
-					<div class="col-md-7">
-						<div class="panel panel-widget">
-							<div class="panel-title">
-							  Real Time Updates
-							  <ul class="panel-tools">
-								<li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-								<li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-								<li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
-							  </ul>
-							</div>
-							<div class="panel-body">
-								<div class="demo-container">
-									<div id="placeholder" class="demo-placeholder"></div>
-								</div>
-								<p>Time between updates: <input id="updateInterval" type="text" value="" style="text-align: right; width:5em"> milliseconds</p>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-5">
-						<div class="panel panel-widget">
-							<div class="panel-title">
-							  Error Bars
-							  <ul class="panel-tools">
-								<li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-								<li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-								<li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
-							  </ul>
-							</div>
-							<div class="panel-body">
-								<div class="demo-container">
-									<div id="placeholder1" class="demo-placeholder"></div>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<div class="clearfix"> </div>
-				</div>
-				<!--//row-->
-				<!--row-->
-				<div class="row">
-					<div class="col-md-5 program-grid">
-						<div class="panel panel-widget">
-							<div class="panel-title">
-							  Programming Skills
-							  <ul class="panel-tools">
-								<li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-								<li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-								<li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
-							  </ul>
-							</div>
-							<div class="panel-body">
-								<div class="content">
-									<svg id="svg"></svg>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-7 monthly-grid">
-						<div class="panel panel-widget">
-							<div class="panel-title">
-							  Monthly Status Report
-							  <ul class="panel-tools">
-								<li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-								<li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-								<li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
-							  </ul>
-							</div>
-							<div class="panel-body">
-								<!-- status -->
-								<div class="contain">
-									<div class="gantt"></div>
-								</div>
-								<!-- status -->
-							</div>
-						</div>
-					</div>
-					<div class="clearfix"> </div>
-				</div>
-				<!--//row-->
-			</div>
-		</div>
-		<!--footer-->
-		 <div class="dev-page">
-
-			<!-- page footer -->
-			<!-- dev-page-footer-closed dev-page-footer-fixed -->
-            <div class="dev-page-footer dev-page-footer-fixed">
-				<!-- container -->
-				<div class="container">
-					<div class="copyright">
-						<p>Copyright &copy; 2016.Company name All rights reserved.More Templates <a href="http://www.cssmoban.com/" target="_blank" title="模板之家">模板之家</a> - Collect from <a href="http://www.cssmoban.com/" title="网页模板" target="_blank">网页模板</a></p>
-					</div>
-					<!-- page footer buttons -->
-					<ul class="dev-page-footer-buttons">
-						<li><a href="#footer_content_1" class="dev-page-footer-container-open"><span class="glyphicon glyphicon glyphicon-sort" aria-hidden="true"></span></a></li>
-						<li><a href="#footer_content_2" class="dev-page-footer-container-open"><span class="glyphicon glyphicon glyphicon-signal" aria-hidden="true"></span></a></li>
-						<li><a href="#footer_content_3" class="dev-page-footer-container-open"><span class="glyphicon glyphicon glyphicon glyphicon-file" aria-hidden="true"></span></a></li>
-					</ul>
-					<!-- //page footer buttons -->
-					<!-- page footer container -->
-					<div class="dev-page-footer-container">
-
-						<!-- loader and close button -->
-						<div class="dev-page-footer-container-layer">
-							<a href="#" class="dev-page-footer-container-layer-button"></a>
-						</div>
-						<!-- //loader and close button -->
-
-						<!-- informers -->
-						<div class="dev-page-footer-container-content" id="footer_content_1">
-							<div class="block-hdnews">
-								  <div class="list-wrpaaer" style="height:200px;">
-									 <ul class="list-aggregate" id="marquee-horizontal">
-									   <li class="fat-l" style="width:300px">
-										<a th:href="@{#}">Lorem ipsum dolor</a>
-										<p>
-										   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-										 </p>
-									   </li>
-
-									   <li class="fat-l" style="width:300px">
-										<a th:href="@{#}">Consectetur</a>
-										<p>
-										   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-										 </p>
-									   </li>
-
-									   <li class="fat-l" style="width:300px">
-										 <a th:href="@{#}">Adipiscing elit</a>
-										 <p>
-										   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-										 </p>
-									   </li>
-
-									   <li class="fat-l" style="width:300px">
-										<a th:href="@{#}">Lorem ipsum dolor</a>
-										 <p>
-										   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-										 </p>
-									   </li>
-										<li class="fat-l" style="width:300px">
-										<a th:href="@{#}">Consectetur</a>
-										 <p>
-										   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-										 </p>
-									   </li>
-
-									   <li class="fat-l" style="width:300px">
-										 <a th:href="@{#}">Adipiscing elit</a>
-										 <p>
-										   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-											Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-										 </p>
-									   </li>
-
-									 </ul>
-								  </div><!-- list-wrpaaer -->
-
-							  </div> <!-- block-hdnews -->
-
-						<script type="text/javascript">
-
-						  $(function(){
-
-
-						  $('#marquee-vertical').marquee();
-						  $('#marquee-horizontal').marquee({direction:'horizontal', delay:0, timing:50});
-
-						});
-
-						</script>
-						</div>
-						<!-- //informers -->
-
-						<!-- informers -->
-						<div class="dev-page-footer-container-content" id="footer_content_2">
-							<div class="graphs">
-								<div class="col-md-4 graph-points">
-									<div class="graph-left">
-									   <script type="text/javascript">
-										  // Generate data
-
-										  var data = [];
-
-										  var time = new Date('Dec 1, 2013 12:00').valueOf();
-
-										  var h = Math.floor(Math.random() * 100);
-										  var l = h - Math.floor(Math.random() * 20);
-										  var o = h - Math.floor(Math.random() * (h - l));
-										  var c = h - Math.floor(Math.random() * (h - l));
-
-										  var v = Math.floor(Math.random() * 1000);
-
-										  for (var i = 0; i < 30; i++) {
-											data.push([time, o, h, l, c, v]);
-											h += Math.floor(Math.random() * 10 - 5);
-											l = h - Math.floor(Math.random() * 20);
-											o = h - Math.floor(Math.random() * (h - l));
-											c = h - Math.floor(Math.random() * (h - l));
-											v += Math.floor(Math.random() * 100 - 50);
-											time += 30 * 60000; // Add 30 minutes
-										  }
-										</script>
-										<div id="example-1"></div>
-										<script type="text/javascript">
-										  $(function() {
-											$('#example-1').jqCandlestick({
-											  data: data,
-											  theme: 'light',
-											  series: [{
-											  }],
-											});
-										  });
-										</script>
-									</div>
-									<div class="graph-right">
-										<h3>TODAY'S STATS</h3>
-										<p>Duis aute irure dolor in reprehenderit.</p>
-										<ul>
-											<li>Earning: $400 USD</li>
-											<li>Items Sold: 20 Items</li>
-											<li>Last Hour Sales: $34 USD</li>
-										</ul>
-									</div>
-									<div class="clearfix"> </div>
-								</div>
-								<div class="col-md-4 bar-grid">
-									<div class="graph-left">
-										<canvas id="line"></canvas>
-											<script>
-													var lineChartData = {
-														labels : ["Mon","Tue","Wed","Thu","Fri","Sat","Mon"],
-														datasets : [
-															{
-																fillColor : "rgba(202, 202, 202, 0)",
-																strokeColor : "#3E495A",
-																pointColor : "#fbfbfb",
-																pointStrokeColor : "#fbfbfb",
-																data : [20,35,45,30,10,65,40]
-															}
-														]
-
-													};
-													new Chart(document.getElementById("line").getContext("2d")).Line(lineChartData);
-											</script>
-									</div>
-									<div class="graph-right">
-										<h3>TODAY'S STATS</h3>
-										<p>Duis aute irure dolor in reprehenderit.</p>
-										<ul>
-											<li>Earning: $400 USD</li>
-											<li>Items Sold: 20 Items</li>
-											<li>Last Hour Sales: $34 USD</li>
-										</ul>
-									</div>
-									<div class="clearfix"> </div>
-								</div>
-								<div class="col-md-4 switch-right">
-									<div class="graph-left">
-										<canvas id="bar"></canvas>
-											<script>
-												var barChartData = {
-													labels : ["Mon","Tue","Wed","Thu","Fri","Sat","Mon","Tue","Wed","Thu"],
-													datasets : [
-														{
-															fillColor : "#fbc02d",
-															strokeColor : "#fbc02d",
-															highlightFill: "rgba(220,220,220,0.75)",
-															highlightStroke: "rgba(220,220,220,1)",
-															data : [25,40,50,65,55,30,20,10,6,4]
-														},
-														{
-															fillColor : "#3E495A",
-															strokeColor : "#3E495A",
-															data : [30,45,55,70,40,25,15,8,5,2]
-														}
-													]
-
-												};
-													new Chart(document.getElementById("bar").getContext("2d")).Bar(barChartData);
-											</script>
-									</div>
-									<div class="graph-right">
-										<h3>TODAY'S STATS</h3>
-										<p>Duis aute irure dolor in reprehenderit.</p>
-										<ul>
-											<li>Earning: $400 USD</li>
-											<li>Items Sold: 20 Items</li>
-											<li>Last Hour Sales: $34 USD</li>
-										</ul>
-									</div>
-									<div class="clearfix"> </div>
-								</div>
-
-								<div class="clearfix"> </div>
-							</div>
-						</div>
-						<!-- //informers -->
-
-						<!-- projects -->
-						<div class="dev-page-footer-container-content" id="footer_content_3">
-							<div class="social">
-								<div class="col-md-3 top-comment-grid">
-									<div class="comments">
-										<div class="comments-icon">
-											<i class="fa fa-comments"></i>
-										</div>
-										<div class="comments-info">
-											<h3>85</h3>
-											<a th:href="@{#}">Comments</a>
-										</div>
-										<div class="clearfix"> </div>
-									</div>
-								</div>
-								<div class="col-md-3 top-comment-grid">
-									<div class="comments likes">
-										<div class="comments-icon">
-											<i class="fa fa-facebook"></i>
-										</div>
-										<div class="comments-info likes-info">
-											<h3>2150</h3>
-											<a th:href="@{#}">Likes</a>
-										</div>
-										<div class="clearfix"> </div>
-									</div>
-								</div>
-								<div class="col-md-3 top-comment-grid">
-									<div class="comments tweets">
-										<div class="comments-icon">
-											<i class="fa fa-twitter"></i>
-										</div>
-										<div class="comments-info tweets-info">
-											<h3>325</h3>
-											<a th:href="@{#}">Tweets</a>
-										</div>
-										<div class="clearfix"> </div>
-									</div>
-								</div>
-								<div class="col-md-3 top-comment-grid">
-									<div class="comments views">
-										<div class="comments-icon">
-											<i class="fa fa-eye"></i>
-										</div>
-										<div class="comments-info views-info">
-											<h3>471</h3>
-											<a th:href="@{#}">Views</a>
-										</div>
-										<div class="clearfix"> </div>
-									</div>
-								</div>
-								<div class="clearfix"> </div>
-							</div>
-						</div>
-						<!-- //projects -->
-					</div>
-                <!-- //page footer container -->
-
+<!-- disconnected modal -->
+<div class="modal fade" id="disconnected" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-zoom" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="connection-error">
+                    <h4 class="text-center">Application disconnected...</h4>
+                    <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
+                         y="0px"
+                         width="862.899px" height="862.9px" viewBox="0 0 862.899 862.9" style="enable-background:new 0 0 862.899 862.9;"
+                         xml:space="preserve">
+                        <g>
+                            <g>
+                                <circle cx="385.6" cy="656.1" r="79.8"/>
+                                <path d="M561.7,401c-15.801-10.3-32.601-19.2-50.2-26.6c-39.9-16.9-82.3-25.5-126-25.5c-44.601,0-87.9,8.9-128.6,26.6
+                                    c-39.3,17-74.3,41.3-104.1,72.2L253.5,545c34.899-36.1,81.8-56,132-56c49,0,95.1,19.1,129.8,53.8l25.4-25.399L493,469.7L561.7,401
+                                    z"/>
+                                <path d="M385.6,267.1c107.601,0,208.9,41.7,285.3,117.4l98.5-99.5c-50-49.5-108.1-88.4-172.699-115.6
+                                    c-66.9-28.1-138-42.4-211.101-42.4c-73.6,0-145,14.4-212.3,42.9c-65,27.5-123.3,66.8-173.3,116.9l99,99
+                                    C175.5,309.299,277.3,267.1,385.6,267.1z"/>
+                                <polygon points="616.8,402.5 549.7,469.599 639.2,559.099 549.7,648.599 616.8,715.7 706.3,626.2 795.8,715.7 862.899,648.599
+                                    773.399,559.099 862.899,469.599 795.8,402.5 706.3,492 		"/>
+                            </g>
+                        </g>
+                        <g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g>
+                    </svg>
                 </div>
-				<!-- //container -->
             </div>
-            <!-- /page footer -->
-		</div>
-        <!--//footer-->
-	</div>
-	<!-- Classie -->
-		<script src="js/classie.js"></script>
-		<script>
-			var menuLeft = document.getElementById( 'cbp-spmenu-s1' ),
-				showLeftPush = document.getElementById( 'showLeftPush' ),
-				body = document.body;
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary btn-lg">Reconnect</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ./ disconnected modal -->
 
-			showLeftPush.onclick = function() {
-				classie.toggle( this, 'active' );
-				classie.toggle( body, 'cbp-spmenu-push-toright' );
-				classie.toggle( menuLeft, 'cbp-spmenu-open' );
-				disableOther( 'showLeftPush' );
-			};
+<!-- call modal -->
+<!--<div class="modal call fade" id="call" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"-->
+<!--     aria-hidden="true">-->
+<!--    <div class="modal-dialog modal-dialog-centered modal-dialog-zoom" role="document">-->
+<!--        <div class="modal-content">-->
+<!--            <div class="modal-body">-->
+<!--                <div class="call">-->
+<!--                    <div class="call-background" style="background: url(./hdist/media/img/call-bg.png)"></div>-->
+<!--                    <div>-->
+<!--                        <figure class="mb-4 avatar avatar-xl">-->
+<!--                            <img th:src="@{/hdist/media/img/women_avatar1.jpg}" class="rounded-circle">-->
+<!--                        </figure>-->
+<!--                        <h4 class="text-center">Jennica Kindred calling ...</h4>-->
+<!--                        <div class="action-button">-->
+<!--                            <button type="button" class="btn btn-danger btn-floating btn-lg" data-dismiss="modal">-->
+<!--                                <i class="ti-close"></i>-->
+<!--                            </button>-->
+<!--                            <button type="button" class="btn btn-success btn-pulse btn-floating btn-lg">-->
+<!--                                <i class="fa fa-phone"></i>-->
+<!--                            </button>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+<!-- ./ call modal -->
 
+<!-- add friends modal -->
+<div class="modal fade" id="addFriends" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
 
-			function disableOther( button ) {
-				if( button !== 'showLeftPush' ) {
-					classie.toggle( showLeftPush, 'disabled' );
-				}
-			}
-		</script>
-	<!-- Bootstrap Core JavaScript -->
+    <div class="modal-dialog modal-dialog-centered modal-dialog-zoom" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="ti-user"></i> Add Friends
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i class="ti-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">Send invitations to friends.</div>
+                <form>
+                    <div class="form-group">
+                        <label for="emails" class="col-form-label">Email addresses</label>
+                        <input type="text" class="form-control" id="emails">
+                    </div>
+                    <div class="form-group">
+                        <label for="message" class="col-form-label">Invitation message</label>
+                        <textarea class="form-control" id="message"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ./ add friends modal -->
 
-        <script type="text/javascript" th:src="@{js/bootstrap.min.js}"></script>
+<!-- new group modal -->
+<div class="modal fade" id="newGroup" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-zoom" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa fa-users"></i> New Group
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i class="ti-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="group_name" class="col-form-label">Group name</label>
+                        <input type="text" class="form-control" id="group_name">
+                    </div>
+                    <div class="form-group">
+                        <label for="users" class="col-form-label">Users</label>
+                        <input type="text" class="form-control" id="users" placeholder="Find user">
+                    </div>
+                    <div class="form-group">
+                        <div class="avatar-group">
+                            <figure class="avatar">
+                                <span class="avatar-title bg-success rounded-circle">E</span>
+                            </figure>
+                            <figure class="avatar">
+                                <img th:src="@{/hdist/media/img/women_avatar1.jpg}" class="rounded-circle">
+                            </figure>
+                            <figure class="avatar">
+                                <span class="avatar-title bg-danger rounded-circle">S</span>
+                            </figure>
+                            <figure class="avatar">
+                                <img th:src="@{/hdist/media/img/man_avatar2.jpg}" class="rounded-circle">
+                            </figure>
+                            <figure class="avatar">
+                                <span class="avatar-title bg-info rounded-circle">C</span>
+                            </figure>
+                            <a href="#">
+                                <figure class="avatar">
+                                    <span class="avatar-title bg-primary rounded-circle">+</span>
+                                </figure>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description" class="col-form-label">Description</label>
+                        <textarea class="form-control" id="description"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary">Create Group</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ./ new group modal -->
 
-        <script type="text/javascript" th:src="@{js/dev-loaders.js}"></script>
-        <script type="text/javascript" th:src="@{js/dev-layout-default.js}"></script>
-		<script type="text/javascript" th:src="@{js/jquery.marquee.js}"></script>
-		<link th:href="@{css/bootstrap.min.css}" rel="stylesheet">
+<!-- setting modal -->
+<div class="modal fade" id="settingModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-zoom" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="ti-settings"></i> Settings
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i class="ti-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-toggle="tab" href="#account" role="tab" aria-controls="account" aria-selected="true">Account</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link"  data-toggle="tab" href="#notification" role="tab" aria-controls="notification" aria-selected="false">Notification</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Security</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane show active" id="account" role="tabpanel">
+                        <div class="form-item custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" checked id="customSwitch1">
+                            <label class="custom-control-label" for="customSwitch1">Allow connected contacts</label>
+                        </div>
+                        <div class="form-item custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" checked id="customSwitch2">
+                            <label class="custom-control-label" for="customSwitch2">Confirm message requests</label>
+                        </div>
+                        <div class="form-item custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" checked id="customSwitch3">
+                            <label class="custom-control-label" for="customSwitch3">Profile privacy</label>
+                        </div>
+                        <div class="form-item custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="customSwitch4">
+                            <label class="custom-control-label" for="customSwitch4">Developer mode options</label>
+                        </div>
+                        <div class="form-item custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" checked id="customSwitch5">
+                            <label class="custom-control-label" for="customSwitch5">Two-step security verification</label>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="notification" role="tabpanel">
+                        <div class="form-item custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" checked id="customSwitch6">
+                            <label class="custom-control-label" for="customSwitch6">Allow mobile notifications</label>
+                        </div>
+                        <div class="form-item custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="customSwitch7">
+                            <label class="custom-control-label" for="customSwitch7">Notifications from your friends</label>
+                        </div>
+                        <div class="form-item custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="customSwitch8">
+                            <label class="custom-control-label" for="customSwitch8">Send notifications by email</label>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="contact" role="tabpanel">
+                        <div class="form-item custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="customSwitch9">
+                            <label class="custom-control-label" for="customSwitch9">Suggest changing passwords every month.</label>
+                        </div>
+                        <div class="form-item custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" checked id="customSwitch10">
+                            <label class="custom-control-label" for="customSwitch10">Let me know about suspicious entries to your account</label>
+                        </div>
+                        <div class="form-item">
+                            <p>
+                                <a data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+                                    <span class="ti-plus btn-icon"></span> Security Questions
+                                </a>
+                            </p>
+                            <div class="collapse" id="collapseExample">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" placeholder="Question 1">
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" class="form-control" placeholder="Question 2">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ./ setting modal -->
 
-		<!-- candlestick -->
-		<script type="text/javascript" th:src="@{js/jquery.jqcandlestick.min.js}"></script>
-		<link rel="stylesheet" type="text/css" th:href="@{css/jqcandlestick.css}" />
-		<!-- //candlestick -->
-		
-		<!--max-plugin-->
-		<script type="text/javascript" th:src="@{js/plugins.js}"></script>
-		<!--//max-plugin-->
-		
-		<!--scrolling js-->
-		<script th:src="@{js/jquery.nicescroll.js}"></script>
-		<script th:src="@{js/scripts.js}"></script>
-		<!--//scrolling js-->
-		
-		<!-- real-time-updates -->
-		<script language="javascript" type="text/javascript" th:src="@{js/jquery.flot.js}"></script>
-		<script type="text/javascript">
+<!-- edit profile modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-zoom" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="ti-pencil"></i> Profile Edit
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i class="ti-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-toggle="tab" href="#personal" role="tab" aria-controls="personal" aria-selected="true">Personal</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link"  data-toggle="tab" href="#about" role="tab" aria-controls="about" aria-selected="false">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link"  data-toggle="tab" href="#social-links" role="tab" aria-controls="social-links" aria-selected="false">Social Links</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane show active" id="personal" role="tabpanel">
+                        <form>
+                            <div class="form-group">
+                                <label for="fullname" class="col-form-label">Fullname</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="ti-user"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" class="form-control" id="fullname">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-form-label">Avatar</label>
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <figure class="avatar mr-3 item-rtl">
+                                            <img th:src="@{/hdist/media/img/man_avatar3.jpg}" class="rounded-circle">
+                                        </figure>
+                                    </div>
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" id="customFile">
+                                        <label class="custom-file-label" for="customFile">Choose file</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="city" class="col-form-label">City</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="ti-map-alt"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" class="form-control" id="city">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone" class="col-form-label">Phone</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="ti-mobile"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" class="form-control" id="phone" placeholder="(555) 555 55 55">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="website" class="col-form-label">Website</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="ti-link"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" class="form-control" id="website">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="tab-pane" id="about" role="tabpanel">
+                        <form action="">
+                            <div class="form-group">
+                                <label for="about-text" class="col-form-label">Write a few words that describe you</label>
+                                <textarea class="form-control" id="about-text"></textarea>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" checked id="customCheck1">
+                                <label class="custom-control-label" for="customCheck1">View profile</label>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="tab-pane" id="social-links" role="tabpanel">
+                        <form action="">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                    <span class="input-group-text bg-facebook">
+                                        <i class="ti-facebook"></i>
+                                    </span>
+                                    </div>
+                                    <input type="text" class="form-control" placeholder="Username">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                    <span class="input-group-text bg-twitter">
+                                        <i class="ti-twitter"></i>
+                                    </span>
+                                    </div>
+                                    <input type="text" class="form-control" placeholder="Username">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                    <span class="input-group-text bg-instagram">
+                                        <i class="ti-instagram"></i>
+                                    </span>
+                                    </div>
+                                    <input type="text" class="form-control" placeholder="Username">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                    <span class="input-group-text bg-linkedin">
+                                        <i class="ti-linkedin"></i>
+                                    </span>
+                                    </div>
+                                    <input type="text" class="form-control" placeholder="Username">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                    <span class="input-group-text bg-dribbble">
+                                        <i class="ti-dribbble"></i>
+                                    </span>
+                                    </div>
+                                    <input type="text" class="form-control" placeholder="Username">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                    <span class="input-group-text bg-youtube">
+                                        <i class="ti-youtube"></i>
+                                    </span>
+                                    </div>
+                                    <input type="text" class="form-control" placeholder="Username">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                    <span class="input-group-text bg-google">
+                                        <i class="ti-google"></i>
+                                    </span>
+                                    </div>
+                                    <input type="text" class="form-control" placeholder="Username">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                    <span class="input-group-text bg-whatsapp">
+                                        <i class="fa fa-whatsapp"></i>
+                                    </span>
+                                    </div>
+                                    <input type="text" class="form-control" placeholder="Username">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ./ edit profile modal -->
 
-		$(function() {
+<!-- layout -->
+<div class="layout">
 
-			// We use an inline data source in the example, usually data would
-			// be fetched from a server
+    <!-- navigation -->
+    <nav class="navigation">
+        <div class="nav-group">
+            <ul>
+                <li>
+                    <a class="logo" href="#">
+                        <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                             width="33.004px" height="33.003px" viewBox="0 0 33.004 33.003" style="enable-background:new 0 0 33.004 33.003;"
+                             xml:space="preserve">
+                            <g>
+                                <path d="M4.393,4.788c-5.857,5.857-5.858,15.354,0,21.213c4.875,4.875,12.271,5.688,17.994,2.447l10.617,4.161l-4.857-9.998
+                                    c3.133-5.697,2.289-12.996-2.539-17.824C19.748-1.072,10.25-1.07,4.393,4.788z M25.317,22.149l0.261,0.512l1.092,2.142l0.006,0.01
+                                    l1.717,3.536l-3.748-1.47l-0.037-0.015l-2.352-0.883l-0.582-0.219c-4.773,3.076-11.221,2.526-15.394-1.646
+                                    C1.469,19.305,1.469,11.481,6.277,6.672c4.81-4.809,12.634-4.809,17.443,0.001C27.919,10.872,28.451,17.368,25.317,22.149z"/>
+                                <g>
+                                    <circle cx="9.835" cy="16.043" r="1.833"/>
+                                    <circle cx="15.502" cy="16.043" r="1.833"/>
+                                    <circle cx="21.168" cy="16.043" r="1.833"/>
+                                </g>
+                            </g>
+                            <g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g>
+                        </svg>
+                    </a>
+                </li>
+                <li>
+                    <a data-navigation-target="chats" class="active" href="#">
+                        <i class="ti-comment-alt"></i>
+                    </a>
+                </li>
+                <li>
+                    <a data-navigation-target="friends" href="#" class="notifiy_badge">
+                        <i class="ti-user"></i>
+                    </a>
+                </li>
+                <li data-navigation-target="favorites" class="brackets">
+                    <a href="#">
+                        <i class="ti-star"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" data-toggle="modal" data-target="#editProfileModal">
+                        <i class="ti-pencil"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" data-toggle="modal" data-target="#settingModal">
+                        <i class="ti-settings"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="./login.html">
+                        <i class="ti-power-off"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <!-- ./ navigation -->
 
-			var data = [],
-				totalPoints = 300;
+    <!-- content -->
+    <div class="content">
 
-			function getRandomData() {
+        <!-- sidebar group -->
+        <div class="sidebar-group">
 
-				if (data.length > 0)
-					data = data.slice(1);
+            <!-- Chats sidebar -->
+            <div id="chats" class="sidebar active">
+                <header>
+                    <span>Chats</span>
+                    <ul id="qwe" class="list-inline">
+                        <li class="list-inline-item" data-toggle="tooltip" title="New Group" >
+                            <a class="btn btn-light" href="#" data-toggle="modal" data-target="#newGroup">
+                                <i class="fa fa-users"></i>
+                            </a>
+                        </li>
+                        <li class="list-inline-item">
+                            <a class="btn btn-light" data-toggle="tooltip" title="New Chat" href="#" data-navigation-target="friends">
+                                <i class="ti-comment-alt"></i>
+                            </a>
+                        </li>
+                        <li class="list-inline-item d-lg-none d-sm-block">
+                            <a href="#" class="btn btn-light sidebar-close">
+                                <i class="ti-close"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </header>
+                <form action="">
+                    <input type="text" class="form-control" placeholder="Search chat">
+                </form>
+                <div class="sidebar-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" th:each="friend:${friends}" >
+                            <div th:class="${friend.username}">
+                            <figure class="avatar avatar-state-success">
+                                <img th:src="@{/hdist/media/img/man_avatar1.jpg}" class="rounded-circle">
+                            </figure>
+                            <div class="users-list-body" >
+                                <h5 th:text="${friend.username}" id="friendName"></h5>
+                                <p>Traditional heading elscas sdscsd sdcsdsc</p>
+                                <div class="users-list-action">
+                                    <div class="new-message-count">3</div>
+                                </div>
+                            </div>
+                            </div>
+                        </li>
+<!--                        <li class="list-group-item open-chat">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <img th:src="@{/hdist/media/img/man_avatar3.jpg}" class="rounded-circle">-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Karl Hubane</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div class="avatar-group">-->
+<!--                                <figure class="avatar">-->
+<!--                                    <span class="avatar-title bg-warning bg-success rounded-circle">-->
+<!--                                        <i class="fa fa-users"></i>-->
+<!--                                    </span>-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Entertainment Group</h5>-->
+<!--                                <p><strong>Maher Ruslandi: </strong>Hello!!!</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar avatar-state-warning">-->
+<!--                                    <img th:src="@{/hdist/media/img/women_avatar1.jpg}" class="rounded-circle">-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Jennica Kindred</h5>-->
+<!--                                <p>I know how important this file is to you. You can trust me ;)</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <span class="avatar-title bg-info rounded-circle">M</span>-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Marvin Rohan</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <img th:src="@{/hdist/media/img/man_avatar2.jpg}" class="rounded-circle">-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Frans Hanscombe</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+                    </ul>
+                </div>
+            </div>
+            <!-- ./ Chats sidebar -->
 
-				// Do a random walk
+            <!-- Friends sidebar -->
+            <div id="friends" class="sidebar">
+                <header>
+                    <span>Friends</span>
+                    <ul class="list-inline">
+                        <li class="list-inline-item">
+                            <a class="btn btn-light" href="#" data-toggle="modal" data-target="#addFriends">
+                                <i class="ti-plus btn-icon"></i> Add Friends
+                            </a>
+                        </li>
+                        <li class="list-inline-item d-lg-none d-sm-block">
+                            <a href="#" class="btn btn-light sidebar-close">
+                                <i class="ti-close"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </header>
+                <form action="">
+                    <input type="text" class="form-control" placeholder="Search chat">
+                </form>
+                <div class="sidebar-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <div>
+                                <figure class="avatar">
+                                    <img th:src="@{/hdist/media/img/women_avatar5.jpg}" class="rounded-circle">
+                                </figure>
+                            </div>
+                            <div class="users-list-body">
+                                <h5>Harrietta Souten</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">Open</a>
+                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
+                                            <a href="#" class="dropdown-item">Add to archive</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div>
+                                <figure class="avatar">
+                                    <span class="avatar-title bg-success rounded-circle">A</span>
+                                </figure>
+                            </div>
+                            <div class="users-list-body">
+                                <h5>Aline McShee</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">Open</a>
+                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
+                                            <a href="#" class="dropdown-item">Add to archive</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div>
+                                <figure class="avatar">
+                                    <img th:src="@{/hdist/media/img/women_avatar1.jpg}" class="rounded-circle">
+                                </figure>
+                            </div>
+                            <div class="users-list-body">
+                                <h5>Brietta Blogg</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">Open</a>
+                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
+                                            <a href="#" class="dropdown-item">Add to archive</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div>
+                                <figure class="avatar">
+                                    <img th:src="@{/hdist/media/img/man_avatar3.jpg}" class="rounded-circle">
+                                </figure>
+                            </div>
+                            <div class="users-list-body">
+                                <h5>Karl Hubane</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">Open</a>
+                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
+                                            <a href="#" class="dropdown-item">Add to archive</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div>
+                                <figure class="avatar">
+                                    <img th:src="@{/hdist/media/img/man_avatar2.jpg}" class="rounded-circle">
+                                </figure>
+                            </div>
+                            <div class="users-list-body">
+                                <h5>Jillana Tows</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">Open</a>
+                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
+                                            <a href="#" class="dropdown-item">Add to archive</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div>
+                                <figure class="avatar">
+                                    <span class="avatar-title bg-info rounded-circle">AD</span>
+                                </figure>
+                            </div>
+                            <div class="users-list-body">
+                                <h5>Alina Derington</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">Open</a>
+                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
+                                            <a href="#" class="dropdown-item">Add to archive</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div>
+                                <figure class="avatar">
+                                    <span class="avatar-title bg-warning rounded-circle">S</span>
+                                </figure>
+                            </div>
+                            <div class="users-list-body">
+                                <h5>Stevy Kermeen</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">Open</a>
+                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
+                                            <a href="#" class="dropdown-item">Add to archive</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div>
+                                <figure class="avatar">
+                                    <img th:src="@{/hdist/media/img/man_avatar1.jpg}" class="rounded-circle">
+                                </figure>
+                            </div>
+                            <div class="users-list-body">
+                                <h5>Stevy Kermeen</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">Open</a>
+                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
+                                            <a href="#" class="dropdown-item">Add to archive</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div>
+                                <figure class="avatar">
+                                    <img th:src="@{/hdist/media/img/man_avatar5.jpg}" class="rounded-circle">
+                                </figure>
+                            </div>
+                            <div class="users-list-body">
+                                <h5>Gloriane Shimmans</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">Open</a>
+                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
+                                            <a href="#" class="dropdown-item">Add to archive</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div>
+                                <figure class="avatar">
+                                    <span class="avatar-title bg-secondary rounded-circle">B</span>
+                                </figure>
+                            </div>
+                            <div class="users-list-body">
+                                <h5>Bernhard Perrett</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">Open</a>
+                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
+                                            <a href="#" class="dropdown-item">Add to archive</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- ./ Friends sidebar -->
 
-				while (data.length < totalPoints) {
+            <!-- Favorites sidebar -->
+            <div id="favorites" class="sidebar">
+                <header>
+                    <span>Favorites</span>
+                    <ul class="list-inline">
+                        <li class="list-inline-item d-lg-none d-sm-block">
+                            <a href="#" class="btn btn-light sidebar-close">
+                                <i class="ti-close"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </header>
+                <form action="">
+                    <input type="text" class="form-control" placeholder="Search favorites">
+                </form>
+                <div class="sidebar-body">
+                    <ul class="list-group list-group-flush users-list">
+                        <li class="list-group-item">
+                            <div class="users-list-body">
+                                <h5>Jennica Kindred</h5>
+                                <p>I know how important this file is to you. You can trust me ;)</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">View Chat</a>
+                                            <a href="#" class="dropdown-item">Forward</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="users-list-body">
+                                <h5>Marvin Rohan</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">View Chat</a>
+                                            <a href="#" class="dropdown-item">Forward</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="users-list-body">
+                                <h5>Frans Hanscombe</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">View Chat</a>
+                                            <a href="#" class="dropdown-item">Forward</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="users-list-body">
+                                <h5>Karl Hubane</h5>
+                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <div class="users-list-action action-toggle">
+                                    <div class="dropdown">
+                                        <a data-toggle="dropdown" href="#">
+                                            <i class="ti-more"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="#" class="dropdown-item">View Chat</a>
+                                            <a href="#" class="dropdown-item">Forward</a>
+                                            <a href="#" class="dropdown-item">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- ./ Stars sidebar -->
 
-					var prev = data.length > 0 ? data[data.length - 1] : 50,
-						y = prev + Math.random() * 10 - 5;
+        </div>
+        <!-- ./ sidebar group -->
 
-					if (y < 0) {
-						y = 0;
-					} else if (y > 100) {
-						y = 100;
-					}
+        <!-- chat -->
+        <div class="chat">
+            <div class="chat-header">
+                <div class="chat-header-user">
+                    <figure class="avatar avatar-lg">
+                        <img th:src="@{/hdist/media/img/man_avatar3.jpg}" class="rounded-circle">
+                    </figure>
+                    <div>
+                        <h5>Karl Hubane</h5>
+                        <small class="text-muted">
+                            <i>Online</i>
+                        </small>
+                    </div>
+                </div>
+                <div class="chat-header-action">
+                    <ul class="list-inline">
+                        <li class="list-inline-item">
+                            <a href="#" class="btn btn-success">
+                                <i class="fa fa-phone" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li class="list-inline-item">
+                            <a href="#" class="btn btn-secondary">
+                                <i class="fa fa-video-camera" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li class="list-inline-item">
+                            <a href="#" class="btn btn-secondary" data-toggle="dropdown">
+                                <i class="ti-more"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
+                                <a href="#" class="dropdown-item">Add to archive</a>
+                                <a href="#" class="dropdown-item">Delete</a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" class="dropdown-item">Block</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="chat-body"> <!-- .no-message -->
+                <!--
+                <div class="no-message-container">
+                    <i class="fa fa-comments-o"></i>
+                    <p>Select a chat to read messages</p>
+                </div>
+                -->
+                <div class="messages">
+                        <div class="message-item outgoing-message">-->
+                            <div class="message-content">
+                                Hey, Maher! I'm waiting for you to send me the files.
+                            </div>
+                            <div class="message-content" id="MyhistoryMsg">
+                                Hey, Maher! I'm waiting for you to send me the files.
+                            </div>
+                            <div class="message-action">
+                                Am 09:34 <i class="ti-double-check"></i>
+                            </div>
+                        </div>
+                        <div class="message-item">
+                            <div class="message-content" id="historyMsg">
+                                I'm sorry :( I'll send you as soon as possible.
+                            </div>
+                            <div class="message-action">
+                                Pm 14:20
+                            </div>
+                        </div>
+<!--                    <div class="message-item outgoing-message">-->
+<!--                        <div class="message-content">-->
+<!--                            Hey, Maher! I'm waiting for you to send me the files.-->
+<!--                        </div>-->
+<!--                        <div class="message-action">-->
+<!--                            Am 09:34 <i class="ti-double-check"></i>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <div class="message-item">-->
+<!--                        <div class="message-content">-->
+<!--                            I'm sorry :( I'll send you as soon as possible.-->
+<!--                        </div>-->
+<!--                        <div class="message-action">-->
+<!--                            Pm 14:20-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <div class="message-item outgoing-message">-->
+<!--                        <div class="message-content">-->
+<!--                            I'm waiting. Thank you :)-->
+<!--                        </div>-->
+<!--                        <div class="message-action">-->
+<!--                            Pm 14:25 <i class="ti-double-check"></i>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <div class="message-item">-->
+<!--                        <div class="message-content">-->
+<!--                            I'm sending files now.-->
+<!--                        </div>-->
+<!--                        <div class="message-action">-->
+<!--                            Pm 14:20-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <div class="message-item">-->
+<!--                        <div class="message-content message-file">-->
+<!--                            <div class="file-icon">-->
+<!--                                <i class="ti-file"></i>-->
+<!--                            </div>-->
+<!--                            <div>-->
+<!--                                <div>important_documents.pdf <i class="text-muted small">(50KB)</i></div>-->
+<!--                                <ul class="list-inline">-->
+<!--                                    <li class="list-inline-item"><a href="#">Download</a></li>-->
+<!--                                    <li class="list-inline-item"><a href="#">View</a></li>-->
+<!--                                </ul>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                        <div class="message-action">-->
+<!--                            Pm 14:25-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <div class="message-item outgoing-message">-->
+<!--                        <div class="message-content">-->
+<!--                            Thank you so much. After I review these files, I will give you my opinion. If there's a problem, you can send it back. Good luck with!-->
+<!--                        </div>-->
+<!--                        <div class="message-action">-->
+<!--                            Pm 14:50 <i title="Message could not be sent" class="ti-info-alt text-danger"></i>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <div class="message-item">-->
+<!--                        <div class="message-content">-->
+<!--                            I can't wait-->
+<!--                        </div>-->
+<!--                        <div class="message-action">-->
+<!--                            Pm 15:00-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <div class="message-item outgoing-message">-->
+<!--                        <div class="message-content">-->
+<!--                            I know how important this file is to you. You can trust me ;)-->
+<!--                        </div>-->
+<!--                        <div class="message-action">-->
+<!--                            Pm 14:50 <i class="ti-double-check"></i>-->
+<!--                        </div>-->
+<!--                    </div>-->
+                </div>
+            </div>
+            <div class="chat-footer">
+                <form action="">
+                    <input type="text" class="form-control" placeholder="Recipient's username"
+                           aria-label="Recipient's username" aria-describedby="button-addon2">
+                    <div class="form-buttons">
+                        <button class="btn btn-light btn-floating" type="button">
+                            <i class="fa fa-paperclip"></i>
+                        </button>
+                        <button class="btn btn-light btn-floating" type="button">
+                            <i class="fa fa-microphone"></i>
+                        </button>
+                        <button class="btn btn-primary btn-floating" type="submit">
+                            <i class="fa fa-send"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- ./ chat -->
 
-					data.push(y);
-				}
+        <div class="sidebar-group">
+            <div id="contact-information" class="sidebar">
+                <header>
+                    <span>About</span>
+                    <ul class="list-inline">
+                        <li class="list-inline-item">
+                            <a href="#" class="btn btn-light sidebar-close">
+                                <i class="ti-close"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </header>
+                <div class="sidebar-body">
+                    <div class="pl-4 pr-4 text-center">
+                        <figure class="avatar avatar-state-danger avatar-xl mb-4">
+                            <img th:src="@{/hdist/media/img/women_avatar5.jpg}" class="rounded-circle">
+                        </figure>
+                        <h5 class="text-primary">Frans Hanscombe</h5>
+                        <p class="text-muted">Last seen: Today</p>
+                    </div>
+                    <hr>
+                    <div class="pl-4 pr-4">
+                        <h6>About</h6>
+                        <p class="text-muted">I love reading, traveling and discovering new things. You need to be happy in life.</p>
+                    </div>
+                    <hr>
+                    <div class="pl-4 pr-4">
+                        <h6>Phone</h6>
+                        <p class="text-muted">(555) 555 55 55</p>
+                    </div>
+                    <hr>
+                    <div class="pl-4 pr-4">
+                        <h6>Media</h6>
+                        <div class="files">
+                            <ul class="list-inline">
+                                <li class="list-inline-item">
+                                    <a href="#">
+                                        <figure class="avatar avatar-lg">
+                                        <span class="avatar-title bg-warning">
+                                            <i class="fa fa-file-pdf-o"></i>
+                                        </span>
+                                        </figure>
+                                    </a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a href="#">
+                                        <figure class="avatar avatar-lg">
+                                            <img th:src="@{/hdist/media/img/women_avatar1.jpg}">
+                                        </figure>
+                                    </a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a href="#">
+                                        <figure class="avatar avatar-lg">
+                                            <img th:src="@{/hdist/media/img/women_avatar3.jpg}">
+                                        </figure>
+                                    </a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a href="#">
+                                        <figure class="avatar avatar-lg">
+                                            <img th:src="@{/hdist/media/img/women_avatar4.jpg}">
+                                        </figure>
+                                    </a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a href="#">
+                                        <figure class="avatar avatar-lg">
+                                        <span class="avatar-title bg-success">
+                                            <i class="fa fa-file-excel-o"></i>
+                                        </span>
+                                        </figure>
+                                    </a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a href="#">
+                                        <figure class="avatar avatar-lg">
+                                        <span class="avatar-title bg-info">
+                                            <i class="fa fa-file-text-o"></i>
+                                        </span>
+                                        </figure>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="pl-4 pr-4">
+                        <h6>City</h6>
+                        <p class="text-muted">Germany / Berlin</p>
+                    </div>
+                    <hr>
+                    <div class="pl-4 pr-4">
+                        <h6>Website</h6>
+                        <p>
+                            <a href="#">www.franshanscombe.com</a>
+                        </p>
+                    </div>
+                    <hr>
+                    <div class="pl-4 pr-4">
+                        <h6>Social Links</h6>
+                        <ul class="list-inline social-links">
+                            <li class="list-inline-item">
+                                <a href="#" class="btn btn-sm btn-floating btn-facebook">
+                                    <i class="fa fa-facebook"></i>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#" class="btn btn-sm btn-floating btn-twitter">
+                                    <i class="fa fa-twitter"></i>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#" class="btn btn-sm btn-floating btn-dribbble">
+                                    <i class="fa fa-dribbble"></i>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#" class="btn btn-sm btn-floating btn-whatsapp">
+                                    <i class="fa fa-whatsapp"></i>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#" class="btn btn-sm btn-floating btn-linkedin">
+                                    <i class="fa fa-linkedin"></i>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#" class="btn btn-sm btn-floating btn-google">
+                                    <i class="fa fa-google"></i>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#" class="btn btn-sm btn-floating btn-behance">
+                                    <i class="fa fa-behance"></i>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#" class="btn btn-sm btn-floating btn-instagram">
+                                    <i class="fa fa-instagram"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <hr>
+                    <div class="pl-4 pr-4">
+                        <div class="form-group">
+                            <div class="form-item custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="customSwitch11">
+                                <label class="custom-control-label" for="customSwitch11">Block</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-item custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" checked="" id="customSwitch12">
+                                <label class="custom-control-label" for="customSwitch12">Mute</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-item custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="customSwitch13">
+                                <label class="custom-control-label" for="customSwitch13">Get notification</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-				// Zip the generated y values with the x values
+    </div>
+    <!-- ./ content -->
 
-				var res = [];
-				for (var i = 0; i < data.length; ++i) {
-					res.push([i, data[i]])
-				}
+</div>
+<!-- ./ layout -->
 
-				return res;
-			}
+<!-- JQuery -->
+<script src="https://www.jq22.com/jquery/jquery-1.10.2.js"></script>
 
-			// Set up the control widget
+<!-- Popper.js -->
+<script th:src="@{/vendor/popper.min.js}"></script>
 
-			var updateInterval = 30;
-			$("#updateInterval").val(updateInterval).change(function () {
-				var v = $(this).val();
-				if (v && !isNaN(+v)) {
-					updateInterval = +v;
-					if (updateInterval < 1) {
-						updateInterval = 1;
-					} else if (updateInterval > 2000) {
-						updateInterval = 2000;
-					}
-					$(this).val("" + updateInterval);
-				}
-			});
+<!-- Bootstrap -->
+<script th:src="@{/vendor/bootstrap/bootstrap.min.js}"></script>
 
-			var plot = $.plot("#placeholder", [ getRandomData() ], {
-				series: {
-					shadowSize: 0	// Drawing is faster without shadows
-				},
-				yaxis: {
-					min: 0,
-					max: 100
-				},
-				xaxis: {
-					show: false
-				}
-			});
+<!-- Nicescroll -->
+<script th:src="@{/vendor/jquery.nicescroll.min.js}"></script>
 
-			function update() {
+<!-- Soho -->
+<script th:src="@{/hdist/js/soho.min.js}"></script>
 
-				plot.setData([getRandomData()]);
-
-				// Since the axes don't change, we don't need to call plot.setupGrid()
-
-				plot.draw();
-				setTimeout(update, updateInterval);
-			}
-
-			update();
-
-			// Add the Flot version string to the footer
-
-			$("#footer").prepend("Flot " + $.plot.version + " &ndash; ");
-		});
-
-		</script>
-		<!-- //real-time-updates -->
-		<!-- error-graph -->
-		<script language="javascript" type="text/javascript" th:src="@{js/jquery.flot.errorbars.js}"></script>
-		<script language="javascript" type="text/javascript" th:src="@{js/jquery.flot.navigate.js}"></script>
-		<script type="text/javascript">
-			$(function() {
-
-				function drawArrow(ctx, x, y, radius){
-					ctx.beginPath();
-					ctx.moveTo(x + radius, y + radius);
-					ctx.lineTo(x, y);
-					ctx.lineTo(x - radius, y + radius);
-					ctx.stroke();
-				}
-
-				function drawSemiCircle(ctx, x, y, radius){
-					ctx.beginPath();
-					ctx.arc(x, y, radius, 0, Math.PI, false);
-					ctx.moveTo(x - radius, y);
-					ctx.lineTo(x + radius, y);
-					ctx.stroke();
-				}
-
-				var data1 = [
-					[1,1,.5,.1,.3],
-					[2,2,.3,.5,.2],
-					[3,3,.9,.5,.2],
-					[1.5,-.05,.5,.1,.3],
-					[3.15,1.,.5,.1,.3],
-					[2.5,-1.,.5,.1,.3]
-				];
-
-				var data1_points = {
-					show: true,
-					radius: 5,
-					fillColor: "blue", 
-					errorbars: "xy", 
-					xerr: {show: true, asymmetric: true, upperCap: "-", lowerCap: "-"}, 
-					yerr: {show: true, color: "red", upperCap: "-"}
-				};
-
-				var data2 = [
-					[.7,3,.2,.4],
-					[1.5,2.2,.3,.4],
-					[2.3,1,.5,.2]
-				];
-
-				var data2_points = {
-					show: true,
-					radius: 5,
-					errorbars: "y", 
-					yerr: {show:true, asymmetric:true, upperCap: drawArrow, lowerCap: drawSemiCircle}
-				};
-
-				var data3 = [
-					[1,2,.4],
-					[2,0.5,.3],
-					[2.7,2,.5]
-				];
-
-				var data3_points = {
-					//do not show points
-					radius: 0,
-					errorbars: "y", 
-					yerr: {show:true, upperCap: "-", lowerCap: "-", radius: 5}
-				};
-
-				var data4 = [
-					[1.3, 1],
-					[1.75, 2.5],
-					[2.5, 0.5]
-				];
-
-				var data4_errors = [0.1, 0.4, 0.2];
-				for (var i = 0; i < data4.length; i++) {
-					data4_errors[i] = data4[i].concat(data4_errors[i])
-				}
-
-				var data = [
-					{color: "blue", points: data1_points, data: data1, label: "data1"}, 
-					{color: "red",  points: data2_points, data: data2, label: "data2"},
-					{color: "green", lines: {show: true}, points: data3_points, data: data3, label: "data3"},
-					// bars with errors
-					{color: "orange", bars: {show: true, align: "center", barWidth: 0.25}, data: data4, label: "data4"},
-					{color: "orange", points: data3_points, data: data4_errors}
-				];
-
-				$.plot($("#placeholder1"), data , {
-					legend: {
-						position: "sw",
-						show: true
-					},
-					series: {
-						lines: {
-							show: false
-						}
-					},
-					xaxis: {
-						min: 0.6,
-						max: 3.1
-					},
-					yaxis: {
-						min: 0,
-						max: 3.5
-					},
-					zoom: {
-						interactive: true
-					},
-					pan: {
-						interactive: true
-					}
-				});
-
-				// Add the Flot version string to the footer
-
-				$("#footer").prepend("Flot " + $.plot.version + " &ndash; ");
-			});
-
-			</script>
-		<!-- //error-graph -->
-		<!-- Skills-graph -->
-		<script src='http://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.3.0/snap.svg-min.js'></script>
-		<script>
-		var programmingSkills = [
-			{
-				value: 20,
-				label: 'jQuery',
-				color: '#3399FF'
-			},
-			{
-				value: 23,
-				label: 'JavaScript',
-				color: '#FFC575'
-			},
-			{
-				value: 17,
-				label: 'Ruby',
-				color: '#99CC00'
-			},
-			{
-				value: 22,
-				label: 'Python',
-				color: '#FF3300'
-			},
-			{
-				value: 18,
-				label: 'CSS3',
-				color: '#944DDB'
-			},
-		];
-		</script> 
-		<script th:src="@{js/svg-donut-chart-framework.js}"></script>
-		<script type="text/javascript">
-
-		  var _gaq = _gaq || [];
-		  _gaq.push(['_setAccount', 'UA-36251023-1']);
-		  _gaq.push(['_setDomainName', 'jqueryscript.net']);
-		  _gaq.push(['_trackPageview']);
-
-		  (function() {
-			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-		  })();
-
-		</script>
-		<!-- //Skills-graph -->
-		<!-- status -->
-		<script th:src="@{js/jquery.fn.gantt.js}"></script>
-		<script>
-
-			$(function() {
-
-				"use strict";
-
-				$(".gantt").gantt({
-					source: [{
-						name: "Sprint 0",
-						desc: "Analysis",
-						values: [{
-							from: "/Date(1320192000000)/",
-							to: "/Date(1322401600000)/",
-							label: "Requirement Gathering", 
-							customClass: "ganttRed"
-						}]
-					},{
-						name: " ",
-						desc: "Scoping",
-						values: [{
-							from: "/Date(1322611200000)/",
-							to: "/Date(1323302400000)/",
-							label: "Scoping", 
-							customClass: "ganttRed"
-						}]
-					},{
-						name: "Sprint 1",
-						desc: "Development",
-						values: [{
-							from: "/Date(1323802400000)/",
-							to: "/Date(1325685200000)/",
-							label: "Development", 
-							customClass: "ganttGreen"
-						}]
-					},{
-						name: " ",
-						desc: "Showcasing",
-						values: [{
-							from: "/Date(1325685200000)/",
-							to: "/Date(1325695200000)/",
-							label: "Showcasing", 
-							customClass: "ganttBlue"
-						}]
-					},{
-						name: "Sprint 2",
-						desc: "Development",
-						values: [{
-							from: "/Date(1326785200000)/",
-							to: "/Date(1325785200000)/",
-							label: "Development", 
-							customClass: "ganttGreen"
-						}]
-					},{
-						name: " ",
-						desc: "Showcasing",
-						values: [{
-							from: "/Date(1328785200000)/",
-							to: "/Date(1328905200000)/",
-							label: "Showcasing", 
-							customClass: "ganttBlue"
-						}]
-					},{
-						name: "Release Stage",
-						desc: "Training",
-						values: [{
-							from: "/Date(1330011200000)/",
-							to: "/Date(1336611200000)/",
-							label: "Training", 
-							customClass: "ganttOrange"
-						}]
-					},{
-						name: " ",
-						desc: "Deployment",
-						values: [{
-							from: "/Date(1336611200000)/",
-							to: "/Date(1338711200000)/",
-							label: "Deployment", 
-							customClass: "ganttOrange"
-						}]
-					},{
-						name: " ",
-						desc: "Warranty Period",
-						values: [{
-							from: "/Date(1336611200000)/",
-							to: "/Date(1349711200000)/",
-							label: "Warranty Period", 
-							customClass: "ganttOrange"
-						}]
-					}],
-					navigate: "scroll",
-					scale: "weeks",
-					maxScale: "months",
-					minScale: "days",
-					itemsPerPage: 10,
-					onItemClick: function(data) {
-						alert("Item clicked - show some details");
-					},
-					onAddClick: function(dt, rowId) {
-						alert("Empty space clicked - add an item!");
-					},
-					onRender: function() {
-						if (window.console && typeof console.log === "function") {
-							console.log("chart rendered");
-						}
-					}
-				});
-
-				$(".gantt").popover({
-					selector: ".bar",
-					title: "I'm a popover",
-					content: "And I'm the content of said popover.",
-					trigger: "hover"
-				});
-
-				prettyPrint();
-
-			});
-
-		</script>
-		<!-- //status -->
-		
+<!-- Examples -->
+<script th:src="@{/hdist/js/examples.js}"></script>
 </body>
 </html>

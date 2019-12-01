@@ -12,5 +12,5 @@ public class Message {
     private Integer fromId;
     private String fromUsername;
     private Integer toId;
-    private String msg;
+    private String message;
 }

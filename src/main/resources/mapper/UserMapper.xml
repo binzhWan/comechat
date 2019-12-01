@@ -22,7 +22,7 @@
             #{friendId}
         </foreach>
     </select>
-    <select id="queryHistoryMsgByFromIDAndToId" resultType="String" >
-        select msg.message from msg where fromId=#{fromId} and toId=#{toId}
+    <select id="queryHistoryMsgByFromIDAndToId" resultType="Message" >
+        select * from msg where (fromId=#{fromId} and toId=#{toId}) or  (fromId=#{toId} and toId=#{fromId})
     </select>
 </mapper>

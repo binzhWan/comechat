@@ -15,9 +15,9 @@ class ComechatApplicationTests {
     UserServiceImpl userService;
     @Test
     void contextLoads() {
-        List<String> strings = userService.queryHistoryMsgByFromIDAndToId(2, 3);
-        for (String string : strings) {
-            System.out.println(string);
-        }
+//        List<String> strings = userService.queryHistoryMsgByFromIDAndToId(2, 3);
+//        for (String string : strings) {
+//            System.out.println(string);
+//        }
     }
 }

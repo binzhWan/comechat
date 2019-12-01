@@ -1,5 +1,6 @@
 package binzh.wan.comechat.controller;
 
+import binzh.wan.comechat.pojo.Message;
 import binzh.wan.comechat.service.UserService;
 import binzh.wan.comechat.service.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,40 +29,20 @@ public class HandPageController {
         System.out.println(username);
         String friendName = (String)beJson.get("friendName");
         System.out.println(friendName);
-        HashMap<String, List<String>> map = new HashMap<>();
-        HashMap<String, String> noMap = new HashMap<>();
-        List<String> messages1=null;
-        List<String> messages2=null;
+        HashMap<String, List<Message>> map = new HashMap<>();
+        HashMap<String, Message> noMap = new HashMap<>();
+        List<Message> messages=null;
         try {
-            messages1  = userService.queryHistoryMsgByFromIDAndToId(userService.queryUserByUsername(username).getId(),
+            messages  = userService.queryHistoryMsgByFromIDAndToId(userService.queryUserByUsername(username).getId(),
                     userService.queryUserByUsername(friendName).getId());
-            messages2  = userService.queryHistoryMsgByFromIDAndToId(userService.queryUserByUsername(friendName).getId(),
-                    userService.queryUserByUsername(username).getId());
-            map.put("Mymessage", messages1);
-            map.put("OpsiteMessage", messages2);
-            for (String s : messages1) {
-                System.out.println(s);
-            }
-            for (String s : messages2) {
+            map.put("message", messages);
+            for (Message s : messages) {
                 System.out.println(s);
             }
             return map;
         }catch (Exception e ){
-            if (messages1!=null||messages2!=null) {
-                map.put("Mymessage", messages1);
-                map.put("OpsiteMessage", messages2);
+                map.put("message", messages);
                 return map;
-            }else {
-                noMap.put("Mymessage","NoMessage");
-                noMap.put("OpsiteMessage","NoMessage");
-                return noMap;
-            }
         }
-
-
-
-
-
-
     }
 }

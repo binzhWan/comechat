@@ -1,6 +1,7 @@
 package binzh.wan.comechat.service;
 
 import binzh.wan.comechat.mapper.UserMapper;
+import binzh.wan.comechat.pojo.Message;
 import binzh.wan.comechat.pojo.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<String> queryHistoryMsgByFromIDAndToId(Integer fromId, Integer toId) {
+    public List<Message> queryHistoryMsgByFromIDAndToId(Integer fromId, Integer toId) {
         return userMapper.queryHistoryMsgByFromIDAndToId(fromId,toId);
     }
 

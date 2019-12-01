@@ -1,11 +1,17 @@
 package binzh.wan.comechat.controller;
 
+import binzh.wan.comechat.chat.ContentVo;
+import binzh.wan.comechat.chat.Message;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 
+import javax.naming.Name;
 import javax.websocket.*;
+import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,10 +26,9 @@ public class WebSocketServerController {
     private Session session;
     private String name;
     @OnOpen
-    public void open(Session session){
-//        map.put(name,this);
+    public void open(Session session, @PathParam("name") String name){
+        map.put(name,this);
         System.out.println(name+"连接服务器成功");
-        System.out.println("客户端连接个数:"+getConnetNum());
 
         this.session=session;
         this.name=name;
@@ -39,22 +44,22 @@ public class WebSocketServerController {
         System.out.println(name+"出现了异常");
     }
     @OnMessage
-    public void getMessage(String message) throws IOException {
-        System.out.println("收到"+name+":"+message);
-        System.out.println("客户端连接个数:"+getConnetNum());
-
-        Set<Map.Entry<String, WebSocketServerController>> entries = map.entrySet();
-        for (Map.Entry<String, WebSocketServerController> entry : entries) {
-            if(!entry.getKey().equals(name)){//将消息转发到其他非自身客户端
-                entry.getValue().send(message);
-
-            }
+    public void getMessage(String msg) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ContentVo contentVo = objectMapper.readValue(msg, ContentVo.class);
+        System.out.println("ConventVo:"+contentVo);
+        System.out.println("收到"+name+":"+msg);
+        Message message = new Message();
+        message.setDate(new Date().toLocaleString());
+        message.setSendMsg(contentVo.getMsg());
+        if (contentVo.getType()==1){
+                    send(map.get(contentVo.getToName()),objectMapper.writeValueAsString(message));
         }
     }
 
-    public void send(String message) throws IOException {
-        if(session.isOpen()){
-            session.getBasicRemote().sendText(message);
+    public void send(WebSocketServerController webSocketServerController,String message) throws IOException {
+        if(webSocketServerController.session.isOpen()){
+            webSocketServerController.session.getBasicRemote().sendText(message);
         }
     }
 

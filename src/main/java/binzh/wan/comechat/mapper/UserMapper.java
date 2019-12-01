@@ -1,5 +1,6 @@
 package binzh.wan.comechat.mapper;
 
+import binzh.wan.comechat.pojo.Message;
 import binzh.wan.comechat.pojo.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
@@ -14,5 +15,5 @@ public interface UserMapper {
     public void addUserByRegisting(User user);
     public List<Integer> queryFriendsIdById(Integer id);
     public List<User> queryFriendsByFriendId(List<Integer> friendId);
-    public List<String> queryHistoryMsgByFromIDAndToId(Integer fromId,Integer toId);
+    public List<Message> queryHistoryMsgByFromIDAndToId(Integer fromId, Integer toId);
 }

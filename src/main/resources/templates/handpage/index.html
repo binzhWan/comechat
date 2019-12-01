@@ -19,8 +19,6 @@
         for (var i=0;i<friends.length;i++) {
             friendclickname[i] = friends[i].username;
         }
-        console.log("......"+friendclickname);
-        console.log(friends);
         var username=[[${username}]];
         var ws=null;
         var url="ws://localhost:8080/websocket/" + username;
@@ -43,10 +41,20 @@
                 // if (result.alert != undefined) {
                 //     $("#historyMsg").append(result.alert + "<br/>");
                 // }
-                if (result.from != undefined) {
-                    $("#historyMsg").append(result.from + " " + result.date + "说:<br/>" + result.sendMsg + "<br/>");
+                console.log(JSON.stringify(result));
+
+                    var chat_body = $('.layout .content .chat .chat-body');
+                    $('.layout .content .chat .chat-body .messages').append('<div class="message-item ">' +
+                                                                                '<div class="message-content">' +result.sendMsg + '</div>' +
+                                                                                '<div class="message-action">'+result.date +'</div></div>');
+
+                    chat_body.scrollTop(chat_body.get(0).scrollHeight, -1).niceScroll({
+                        cursorcolor: 'rgba(66, 66, 66, 0.20)',
+                        cursorwidth: "4px",
+                        cursorborder: '0px'
+                    });
                     //打印接受过来的消息在消息记录上
-                }
+
             }
             for (var i=0; i<friendclickname.length; i++) {
                 var name=friendclickname[i];
@@ -54,7 +62,7 @@
                     $("." + name).bind("click", {index:name},clickHandler);
             }
             function clickHandler(event) {
-
+                friendName=event.data.index;
                     $.ajax({
                         url:"clickedFriend",
                         type:"post",
@@ -63,70 +71,58 @@
                         datatype:"json",
                         success:function (data) {
                             var json=eval(data);
-                            // console.log("......"+data);
-                            // console.log(json.Mymessage);
-                            // console.log(json.Mymessage);
+                            console.log(json.message);
+                            $(".message-item").remove();
                             var chat_body = $('.layout .content .chat .chat-body');
-                            $(".message-content").append(json.MyMessage);
-                            for (var i=0;i<json.Mymessage.length;i++){
-                                var message=(json.Mymessage)[i];
-                                $('.layout .content .chat .chat-body .messages').append('<div class="message-item "><div class="message-content">' + message + '</div><div class="message-action">PM 14:25 "></div></div>');
+                            for (var i=0;i<json.message.length;i++){
+                                var message=(json.message)[i];
+                                if(message.fromUsername!=username){
+                                    $('.layout .content .chat .chat-body .messages').append('<div class="message-item "><div class="message-content">' + message.message + '</div><div class="message-action">PM 14:25 "></div></div>');
 
-                                chat_body.scrollTop(chat_body.get(0).scrollHeight, -1).niceScroll({
-                                    cursorcolor: 'rgba(66, 66, 66, 0.20)',
-                                    cursorwidth: "4px",
-                                    cursorborder: '0px'
-                                });
+                                    chat_body.scrollTop(chat_body.get(0).scrollHeight, -1).niceScroll({
+                                        cursorcolor: 'rgba(66, 66, 66, 0.20)',
+                                        cursorwidth: "4px",
+                                        cursorborder: '0px'
+                                    });
+                                }else{
+                                    $('.layout .content .chat .chat-body .messages').append('<div class="message-item outgoing-message "><div class="message-content">' + message.message + '</div><div class="message-action">PM 14:25 "></div></div>');
+
+                                    chat_body.scrollTop(chat_body.get(0).scrollHeight, -1).niceScroll({
+                                        cursorcolor: 'rgba(66, 66, 66, 0.20)',
+                                        cursorwidth: "4px",
+                                        cursorborder: '0px'
+                                    });
+                                }
+
                             }
-
-                            // })
-
                         }
                     })
             }
         }
-        // $("#qwe").each(function (i) {
-        //     $(this).click(function () {
-        //         alert("i");
-        //         $(".new-message-count").html("0");
-        //         if ($(".new-message-count").html()=="0"){
-        //             $(".new-message-count").toggle();
-        //         }
-        //         friendName=$("#friendName").html();
-        //         console.log(friendName);
-        //         $.ajax({
-        //             url:"clickedFriend",
-        //             type:"post",
-        //             data:"friendName="+friendName,
-        //             datatype:"json",
-        //             success:function (data) {
-        //                 $(".message-content").html(data);
-        //             }
-        //         })
-        //     })
-        // })
-
-
-
-
         function send() {
-            var toId="${sessionScope.Fid}";
-            console.log(toName+".....");
-            var value=$("#messageInput").val();
-            $("#historyMsg").append("我:"+value+"<br/>");
-            console.log(value);
+            var chat_body = $('.layout .content .chat .chat-body');
+            var username=[[${username}]];
+            var MsgContent=$("#MsgContent").val();
+            console.log(MsgContent+".....");
+            if (MsgContent!=null&&MsgContent!=""&&ws!=null){
+                $('.layout .content .chat .chat-body .messages').append('<div class="message-item outgoing-message "><div class="message-content">' +
+                    MsgContent + '</div><div class="message-action">PM 14:25 "></div></div>');
+                chat_body.scrollTop(chat_body.get(0).scrollHeight, -1).niceScroll({
+                    cursorcolor: 'rgba(66, 66, 66, 0.20)',
+                    cursorwidth: "4px",
+                    cursorborder: '0px'
+                });
+            }
+            $("#MsgContent").val("");
             var object=null;
             object={
-                toName:toName,
-                msg:value,
+                toName:friendName,
+                msg:MsgContent,
                 type:1,
-                toId:toId,
-            };
+            }
             var json=JSON.stringify(object);
             ws.send(json);
-            var container = document.getElementById('historyMsg');
-            container.scrollTop = container.scrollHeight;
-            $("#messageInput").val("");
+            // var MsgContent=$("#MsgContent").val();
         }
 
     </script>
@@ -1239,25 +1235,25 @@
                 </div>
                 -->
                 <div class="messages">
-                        <div class="message-item outgoing-message">-->
-                            <div class="message-content">
-                                Hey, Maher! I'm waiting for you to send me the files.
-                            </div>
-                            <div class="message-content" id="MyhistoryMsg">
-                                Hey, Maher! I'm waiting for you to send me the files.
-                            </div>
-                            <div class="message-action">
-                                Am 09:34 <i class="ti-double-check"></i>
-                            </div>
-                        </div>
-                        <div class="message-item">
-                            <div class="message-content" id="historyMsg">
-                                I'm sorry :( I'll send you as soon as possible.
-                            </div>
-                            <div class="message-action">
-                                Pm 14:20
-                            </div>
-                        </div>
+<!--                        <div class="message-item outgoing-message">&ndash;&gt;-->
+<!--                            <div class="message-content">-->
+<!--                                Hey, Maher! I'm waiting for you to send me the files.-->
+<!--                            </div>-->
+<!--                            <div class="message-content" id="MyhistoryMsg">-->
+<!--                                Hey, Maher! I'm waiting for you to send me the files.-->
+<!--                            </div>-->
+<!--                            <div class="message-action">-->
+<!--                                Am 09:34 <i class="ti-double-check"></i>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                        <div class="message-item">-->
+<!--                            <div class="message-content" id="historyMsg">-->
+<!--                                I'm sorry :( I'll send you as soon as possible.-->
+<!--                            </div>-->
+<!--                            <div class="message-action">-->
+<!--                                Pm 14:20-->
+<!--                            </div>-->
+<!--                        </div>-->
 <!--                    <div class="message-item outgoing-message">-->
 <!--                        <div class="message-content">-->
 <!--                            Hey, Maher! I'm waiting for you to send me the files.-->
@@ -1335,16 +1331,16 @@
             </div>
             <div class="chat-footer">
                 <form action="">
-                    <input type="text" class="form-control" placeholder="Recipient's username"
+                    <input type="text" class="form-control" id="MsgContent" placeholder="Recipient's username"
                            aria-label="Recipient's username" aria-describedby="button-addon2">
                     <div class="form-buttons">
-                        <button class="btn btn-light btn-floating" type="button">
+                        <button class="btn btn-light btn-floating" id="hahaha" type="button">
                             <i class="fa fa-paperclip"></i>
                         </button>
                         <button class="btn btn-light btn-floating" type="button">
                             <i class="fa fa-microphone"></i>
                         </button>
-                        <button class="btn btn-primary btn-floating" type="submit">
+                        <button class="btn btn-primary btn-floating"  onclick="send()" type="button">
                             <i class="fa fa-send"></i>
                         </button>
                     </div>

@@ -4,15 +4,7 @@ public class ContentVo  {
     private String toName;
     private String msg;
     private Integer type;
-    private String toId;
 
-    public String getToId() {
-        return toId;
-    }
-
-    public void setToId(String toId) {
-        this.toId = toId;
-    }
 
     @Override
     public String toString() {
@@ -20,7 +12,6 @@ public class ContentVo  {
                 "toName='" + toName + '\'' +
                 ", msg='" + msg + '\'' +
                 ", type=" + type +
-                ", toId='" + toId + '\'' +
                 '}';
     }
 

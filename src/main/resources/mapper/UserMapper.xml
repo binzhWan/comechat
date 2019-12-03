@@ -25,4 +25,19 @@
     <select id="queryHistoryMsgByFromIDAndToId" resultType="Message" >
         select * from msg where (fromId=#{fromId} and toId=#{toId}) or  (fromId=#{toId} and toId=#{fromId})
     </select>
+    <insert id="saveMessage" parameterType="Message" >
+        insert into msg(fromId,fromUsername,toId,message,type) values(#{fromId},#{fromUsername},#{toId},#{message},#{type})
+    </insert>
+    <select id="countOneUserNewMegByType"  resultType="Integer">
+        select count(id) from msg where type=#{type} and fromId=#{fromId} and toId=#{toId}
+    </select>
+    <update id="updataPortrait" >
+        update img set imgUrl= #{imgUrl} where userId =#{userId}
+    </update>
+    <select id="queryImgUrlByUserId" parameterType="Integer" resultType="String">
+        select img.imgUrl from img where userId=#{userId}
+    </select>
+    <insert id="addImgUrlIfPortraitIsNULL" >
+        insert into img(userId,imgUrl) values(#{userId},#{imgUrl})
+    </insert>
 </mapper>

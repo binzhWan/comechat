@@ -2,6 +2,7 @@ package binzh.wan.comechat.service;
 
 import binzh.wan.comechat.mapper.UserMapper;
 import binzh.wan.comechat.pojo.Message;
+import binzh.wan.comechat.pojo.img;
 import binzh.wan.comechat.pojo.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,5 +43,28 @@ public class UserServiceImpl implements UserService {
         return userMapper.queryHistoryMsgByFromIDAndToId(fromId,toId);
     }
 
+    @Override
+    public void saveMessage(Message message) {
+        userMapper.saveMessage(message);
+    }
 
+    @Override
+    public Integer countOneUserNewMegByType(Integer type, Integer fromId, Integer toId) {
+        return userMapper.countOneUserNewMegByType(type, fromId, toId);
+    }
+
+    @Override
+    public void updataPortrait(Integer userId,  String imgUrl) {
+        userMapper.updataPortrait(userId,imgUrl);
+    }
+
+    @Override
+    public String queryImgUrlByUserId(Integer userId) {
+        return userMapper.queryImgUrlByUserId(userId);
+    }
+
+    @Override
+    public void addImgUrlIfPortraitIsNULL(Integer userId, String imgUrl) {
+        userMapper.addImgUrlIfPortraitIsNULL(userId,imgUrl);
+    }
 }

@@ -7,11 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Message {
+public class img {
     private Integer id;
-    private Integer fromId;
-    private String fromUsername;
-    private Integer toId;
-    private String message;
-    private Integer type;
+    private Integer userId;
+    private String imgUrl;
+    private String username;
 }

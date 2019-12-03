@@ -13,12 +13,16 @@
     <!-- Soho css -->
     <link rel="stylesheet"  th:href="@{/hdist/css/soho.min.css}">
     <script th:inline="javascript">
+        var msgNum=0;
         var friendName;
         var friends=[[${friends}]];
         var friendclickname=new Array();
-        for (var i=0;i<friends.length;i++) {
-            friendclickname[i] = friends[i].username;
+        if (friends!=null){
+            for (var i=0;i<friends.length;i++) {
+                friendclickname[i] = friends[i].username;
+            }
         }
+
         var username=[[${username}]];
         var ws=null;
         var url="ws://localhost:8080/websocket/" + username;
@@ -38,31 +42,39 @@
             //监听服务器发送过来的所有信息
             ws.onmessage = function (event) {
                 eval("var result=" + event.data);
-                // if (result.alert != undefined) {
-                //     $("#historyMsg").append(result.alert + "<br/>");
-                // }
                 console.log(JSON.stringify(result));
+                    if (result.fromName==friendName){
+                        var chat_body = $('.layout .content .chat .chat-body');
+                        $('.layout .content .chat .chat-body .messages').append('<div class="message-item ">' +
+                            '<div class="message-content">' +result.sendMsg + '</div>' +
+                            '<div class="message-action">'+result.date +'</div></div>');
 
-                    var chat_body = $('.layout .content .chat .chat-body');
-                    $('.layout .content .chat .chat-body .messages').append('<div class="message-item ">' +
-                                                                                '<div class="message-content">' +result.sendMsg + '</div>' +
-                                                                                '<div class="message-action">'+result.date +'</div></div>');
-
-                    chat_body.scrollTop(chat_body.get(0).scrollHeight, -1).niceScroll({
-                        cursorcolor: 'rgba(66, 66, 66, 0.20)',
-                        cursorwidth: "4px",
-                        cursorborder: '0px'
-                    });
+                        chat_body.scrollTop(chat_body.get(0).scrollHeight, -1).niceScroll({
+                            cursorcolor: 'rgba(66, 66, 66, 0.20)',
+                            cursorwidth: "4px",
+                            cursorborder: '0px'
+                        });
+                    }else {
+                        msgNum+=1;
+                        $("#"+result.fromName).html(msgNum);
+                    }
                     //打印接受过来的消息在消息记录上
-
             }
-            for (var i=0; i<friendclickname.length; i++) {
-                var name=friendclickname[i];
-                console.log(name);
+            // 更改信息
+            $("#changeMessageBtn").bind("click",submitFunction);
+            // 点击触发查找消息
+            if (friends!=null){
+                for (var i=0; i<friendclickname.length; i++) {
+                    var name=friendclickname[i];
+                    console.log(name);
                     $("." + name).bind("click", {index:name},clickHandler);
+                }
             }
+
             function clickHandler(event) {
                 friendName=event.data.index;
+                msgNum=0;
+                $("#"+friendName).html(msgNum);
                     $.ajax({
                         url:"clickedFriend",
                         type:"post",
@@ -98,6 +110,28 @@
                         }
                     })
             }
+            function submitFunction() {
+                var formData=new FormData($("#changeMessage")[0]);
+                $.ajax({
+                    url:"changeMessage",
+                    type:"POST",
+                    data:formData,
+                    async:true,
+                    cache:false,
+                    contentType:false,
+                    processData:false,
+                    success:function (data) {
+                        console.log(data);
+                        console.log(data.imgUrl);
+                        $("#userPortrait").attr("src",data.imgUrl);
+                        alert("成功了");
+                    },
+                    error:function () {
+                        alert("失败了");
+                    }
+                })
+
+            }
         }
         function send() {
             var chat_body = $('.layout .content .chat .chat-body');
@@ -124,6 +158,7 @@
             ws.send(json);
             // var MsgContent=$("#MsgContent").val();
         }
+
 
     </script>
 </head>
@@ -419,16 +454,16 @@
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane show active" id="personal" role="tabpanel">
-                        <form>
+                        <form id="changeMessage" >
                             <div class="form-group">
-                                <label for="fullname" class="col-form-label">Fullname</label>
+                                <label for="changeUsername" class="col-form-label">username</label>
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">
-                                            <i class="ti-user"></i>
+                                            <i class="ti-user" ></i>
                                         </span>
                                     </div>
-                                    <input type="text" class="form-control" id="fullname">
+                                    <input type="text" class="form-control" id="changeUsername" readonly = "readonly" name="username" th:value="${username}">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -436,47 +471,50 @@
                                 <div class="d-flex align-items-center">
                                     <div>
                                         <figure class="avatar mr-3 item-rtl">
-                                            <img th:src="@{/hdist/media/img/man_avatar3.jpg}" class="rounded-circle">
+                                            <img id="userPortrait" th:src="@{${userPortrait}}" class="rounded-circle">
                                         </figure>
                                     </div>
                                     <div class="custom-file">
-                                        <input type="file" class="custom-file-input" id="customFile">
+                                        <input type="file" class="custom-file-input" id="customFile"  name="file">
                                         <label class="custom-file-label" for="customFile">Choose file</label>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="city" class="col-form-label">City</label>
+                                <label for="changeEmail" class="col-form-label">email</label>
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">
                                             <i class="ti-map-alt"></i>
                                         </span>
                                     </div>
-                                    <input type="text" class="form-control" id="city">
+                                    <input type="text" class="form-control" id="changeEmail" name="email" th:value="${user.email}">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="phone" class="col-form-label">Phone</label>
+                                <label for="changeTel" class="col-form-label">tel</label>
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">
                                             <i class="ti-mobile"></i>
                                         </span>
                                     </div>
-                                    <input type="text" class="form-control" id="phone" placeholder="(555) 555 55 55">
+                                    <input type="text" class="form-control" id="changeTel" name="tel" th:value="${user.tel}">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="website" class="col-form-label">Website</label>
+                                <label for="changeSignature" class="col-form-label">signature</label>
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">
                                             <i class="ti-link"></i>
                                         </span>
                                     </div>
-                                    <input type="text" class="form-control" id="website">
+                                    <input type="text" class="form-control" id="changeSignature" name="signature" th:value="${user.signature}">
                                 </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" id="changeMessageBtn" >Save</button>
                             </div>
                         </form>
                     </div>
@@ -578,9 +616,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary">Save</button>
-            </div>
+
         </div>
     </div>
 </div>
@@ -681,16 +717,16 @@
                 </form>
                 <div class="sidebar-body">
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item" th:each="friend:${friends}" >
+                        <li class="list-group-item" th:each="friend:${friends}">
                             <div th:class="${friend.username}">
                             <figure class="avatar avatar-state-success">
-                                <img th:src="@{/hdist/media/img/man_avatar1.jpg}" class="rounded-circle">
+                                <img th:src="@{${friendsImgUrl.get(__${friendStat.index}__)}}" class="rounded-circle">
                             </figure>
                             <div class="users-list-body" >
                                 <h5 th:text="${friend.username}" id="friendName"></h5>
                                 <p>Traditional heading elscas sdscsd sdcsdsc</p>
                                 <div class="users-list-action">
-                                    <div class="new-message-count">3</div>
+                                    <div class="new-message-count" th:id="${friend.username}" th:text="${NewMsgNumbers.get(__${friendStat.index}__)}"></div>
                                 </div>
                             </div>
                             </div>
@@ -1191,7 +1227,7 @@
             <div class="chat-header">
                 <div class="chat-header-user">
                     <figure class="avatar avatar-lg">
-                        <img th:src="@{/hdist/media/img/man_avatar3.jpg}" class="rounded-circle">
+                        <img  th:src="@{/hdist/media/img/man_avatar3.jpg}" class="rounded-circle">
                     </figure>
                     <div>
                         <h5>Karl Hubane</h5>

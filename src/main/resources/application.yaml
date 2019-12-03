@@ -32,6 +32,10 @@ spring:
     cache: false
   messages:
     basename: i18n.index,i18n.login
+  servlet:
+    multipart:
+      max-file-size: -1
+      max-request-size: -1
 mybatis:
   type-aliases-package: binzh.wan.comechat.pojo
   mapper-locations: classpath:mapper/*.xml

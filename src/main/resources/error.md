@@ -8,3 +8,5 @@
 原因: 在进行Bundle配置文件之前，先在file>>setting>>endit>>file encording页面中的编码全部变为UTF-8
 * 国际化出现??_zh_cn??的乱码
 原因 在.yaml配置文件中没有进行bundle配置文件的指定。故需在yaml文件中加上 spring.messages.basename: i18n.***
+* thymeleaf中获取后端存入的list可以
+th:text="${NewMsgNumbers.get(__${friendStat.index}__)}  这个__得加上

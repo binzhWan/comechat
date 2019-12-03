@@ -504,3 +504,71 @@ public class MyAuthenticationFailureHandler implements AuthenticationFailureHand
 ## * 前后端数据交互
 ###* 若往后端传入json格式的字符串，则需在前台指定contentType:"application/json;charset=UTF-8"
 ###* 后台需要在参数中加入 @requesrbody 注解 
+
+#6 文件上传 
+##* 前端页面
+    input标签里面 type="file"
+##* 后台直接获取
+```java
+@RequestMapping("/changeMessage")
+    public String changeMessage(@RequestParam("username") String username,@RequestParam("file")
+    MultipartFile file,@RequestParam("email") String email,@RequestParam("tel") String tel,
+    @RequestParam("signature")String signature) {
+        if (file.isEmpty()){
+            System.out.println("文件为空，请选择文件");
+        }
+        String originalFilename = file.getOriginalFilename();
+        String filepath="src/main/resources/static/upload/img";
+        String filename= new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + originalFilename;
+        System.out.println("filename="+filename);
+        File file1 = new File(filepath+filename);
+        System.out.println("..."+filepath+filename);
+        System.out.println("parent"+file1.getParentFile());
+        if (!file1.getParentFile().exists()){
+            file1.getParentFile().mkdirs();
+            System.out.println("创建了");
+        }
+        try {
+            file.transferTo(file1.getAbsoluteFile());
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("上传失败");
+        }
+        System.out.println("file1="+file1.getName());
+        return "/toHandPage";
+    }
+```
+##出错的地方
+###* request "xxx" is not found
+前端的 name要写在input里，且名字要和后端的requestparam对应
+###* 后端的 file.transferTo(file1)  file1是要绝对路径，要不然就不会出现文件找不到.
+
+#7 ajax发送表单上传文件
+###  js  contentType:false, processData:false,这两个必须加，contentType:false,取消默认的请求头，processData:false，告诉jquery不要处理发送的数据
+```html
+$("#changeMessageBtn").bind("click",submitFunction);
+function submitFunction() {
+                alert("............")
+                var formData=new FormData($("#changeMessage")[0]);
+                alert("123");
+                $.ajax({
+                    url:"changeMessage",
+                    type:"POST",
+                    data:formData,
+                    async:true,
+                    cache:false,
+                    contentType:false,
+                    processData:false,
+                    success:function () {
+                        alert("成功了");
+                    },
+                    error:function () {
+                        alert("失败了");
+                    }
+                })
+
+            }
+        }
+```
+# 7文件上传回显问题
+##* 在webconfig目录增加 配置静态资源访问路径 ,否则访问不到.

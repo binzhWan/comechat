@@ -40,4 +40,10 @@
     <insert id="addImgUrlIfPortraitIsNULL" >
         insert into img(userId,imgUrl) values(#{userId},#{imgUrl})
     </insert>
+    <insert id="addUser" >
+        insert into friend(userId,friendId) values (#{userId},#{friendId})
+    </insert>
+    <select id="checkUserIsExist" resultType="friend">
+        select * from friend where userId=#{userId} and friendId=#{friendId}
+    </select>
 </mapper>

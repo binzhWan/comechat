@@ -62,6 +62,8 @@
             }
             // 更改信息
             $("#changeMessageBtn").bind("click",submitFunction);
+            // 查找好友
+            $("#addBtn").bind("click",addFunction);
             // 点击触发查找消息
             if (friends!=null){
                 for (var i=0; i<friendclickname.length; i++) {
@@ -85,6 +87,9 @@
                             var json=eval(data);
                             console.log(json.message);
                             $(".message-item").remove();
+                            console.log(json.friendImgUrl);
+                            $("#currentFriendname").html(friendName);
+                            $("#currentChatFriendImg").attr("src",json.friendImgUrl);
                             var chat_body = $('.layout .content .chat .chat-body');
                             for (var i=0;i<json.message.length;i++){
                                 var message=(json.message)[i];
@@ -110,6 +115,20 @@
                         }
                     })
             }
+            $("input[name='queryUsername']").bind('input propertychange', function() {
+                var queryUsername=this.value;
+                console.log(queryUsername);
+                $.ajax({
+                    url: "queryUsername",
+                    type: "post",
+                    data: "queryUsername=" + this.value,
+                    datatype: "text",
+                    success: callback,
+                });
+                function callback(data) {
+                    $("#showIsExist").html(data);
+                }
+            })
             function submitFunction() {
                 var formData=new FormData($("#changeMessage")[0]);
                 $.ajax({
@@ -132,6 +151,27 @@
                 })
 
             }
+
+        function addFunction() {
+            // var formData=new FormData($("#queryOrAdd")[0]);
+            var queryUsername=$("#queryUsername").val();
+            console.log(queryUsername);
+            $.ajax({
+                url:"addUser",
+                type:"POST",
+                contentType:"application/json;charset=UTF-8",
+                data:JSON.stringify({"queryUsername":queryUsername,"username":username}),
+                async:true,
+                cache:false,
+                success:function (data) {
+                    $("#showIsExist").html(data);
+                },
+                error:function () {
+                    alert("失败了");
+                }
+            })
+
+        }
         }
         function send() {
             var chat_body = $('.layout .content .chat .chat-body');
@@ -203,38 +243,6 @@
         </div>
     </div>
 </div>
-<!-- ./ disconnected modal -->
-
-<!-- call modal -->
-<!--<div class="modal call fade" id="call" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"-->
-<!--     aria-hidden="true">-->
-<!--    <div class="modal-dialog modal-dialog-centered modal-dialog-zoom" role="document">-->
-<!--        <div class="modal-content">-->
-<!--            <div class="modal-body">-->
-<!--                <div class="call">-->
-<!--                    <div class="call-background" style="background: url(./hdist/media/img/call-bg.png)"></div>-->
-<!--                    <div>-->
-<!--                        <figure class="mb-4 avatar avatar-xl">-->
-<!--                            <img th:src="@{/hdist/media/img/women_avatar1.jpg}" class="rounded-circle">-->
-<!--                        </figure>-->
-<!--                        <h4 class="text-center">Jennica Kindred calling ...</h4>-->
-<!--                        <div class="action-button">-->
-<!--                            <button type="button" class="btn btn-danger btn-floating btn-lg" data-dismiss="modal">-->
-<!--                                <i class="ti-close"></i>-->
-<!--                            </button>-->
-<!--                            <button type="button" class="btn btn-success btn-pulse btn-floating btn-lg">-->
-<!--                                <i class="fa fa-phone"></i>-->
-<!--                            </button>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
-<!-- ./ call modal -->
-
-<!-- add friends modal -->
 <div class="modal fade" id="addFriends" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
      aria-hidden="true">
 
@@ -250,19 +258,16 @@
             </div>
             <div class="modal-body">
                 <div class="alert alert-info">Send invitations to friends.</div>
-                <form>
+                <form id="queryOrAdd">
                     <div class="form-group">
-                        <label for="emails" class="col-form-label">Email addresses</label>
-                        <input type="text" class="form-control" id="emails">
-                    </div>
-                    <div class="form-group">
-                        <label for="message" class="col-form-label">Invitation message</label>
-                        <textarea class="form-control" id="message"></textarea>
+                        <label  class="col-form-label" >username</label>
+                        <input type="text" class="form-control" id="queryUsername" name="queryUsername">
                     </div>
                 </form>
+                <p id="showIsExist"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary">Submit</button>
+                <button type="button" class="btn btn-primary"  id="addBtn">add</button>
             </div>
         </div>
     </div>
@@ -694,15 +699,16 @@
             <div id="chats" class="sidebar active">
                 <header>
                     <span>Chats</span>
-                    <ul id="qwe" class="list-inline">
+<!--                    <header>-->
+<!--                        <span>Friends</span>-->
                         <li class="list-inline-item" data-toggle="tooltip" title="New Group" >
                             <a class="btn btn-light" href="#" data-toggle="modal" data-target="#newGroup">
                                 <i class="fa fa-users"></i>
                             </a>
                         </li>
-                        <li class="list-inline-item">
-                            <a class="btn btn-light" data-toggle="tooltip" title="New Chat" href="#" data-navigation-target="friends">
-                                <i class="ti-comment-alt"></i>
+                        <li class="list-inline-item" >
+                            <a class="btn btn-light" href="#" data-toggle="modal" data-target="#addFriends">
+                                <i class="ti-plus btn-icon"></i> Add Friends
                             </a>
                         </li>
                         <li class="list-inline-item d-lg-none d-sm-block">
@@ -710,7 +716,8 @@
                                 <i class="ti-close"></i>
                             </a>
                         </li>
-                    </ul>
+
+
                 </header>
                 <form action="">
                     <input type="text" class="form-control" placeholder="Search chat">
@@ -862,8 +869,8 @@
             <div id="friends" class="sidebar">
                 <header>
                     <span>Friends</span>
-                    <ul class="list-inline">
-                        <li class="list-inline-item">
+                    <ul class="list-inline"  >
+                        <li class="list-inline-item" >
                             <a class="btn btn-light" href="#" data-toggle="modal" data-target="#addFriends">
                                 <i class="ti-plus btn-icon"></i> Add Friends
                             </a>
@@ -880,246 +887,246 @@
                 </form>
                 <div class="sidebar-body">
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
+                        <li class="list-group-item" th:each="friend:${friends}">
                             <div>
                                 <figure class="avatar">
-                                    <img th:src="@{/hdist/media/img/women_avatar5.jpg}" class="rounded-circle">
+                                    <img th:src="@{${friendsImgUrl.get(__${friendStat.index}__)}}" class="rounded-circle">
                                 </figure>
                             </div>
                             <div class="users-list-body">
-                                <h5>Harrietta Souten</h5>
-                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
+                                <h5 th:text="${friend.username}" ></h5>
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
                                 <div class="users-list-action action-toggle">
                                     <div class="dropdown">
                                         <a data-toggle="dropdown" href="#">
                                             <i class="ti-more"></i>
                                         </a>
                                         <div class="dropdown-menu dropdown-menu-right">
-                                            <a href="#" class="dropdown-item">Open</a>
-                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
-                                            <a href="#" class="dropdown-item">Add to archive</a>
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
                                             <a href="#" class="dropdown-item">Delete</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
-                            <div>
-                                <figure class="avatar">
-                                    <span class="avatar-title bg-success rounded-circle">A</span>
-                                </figure>
-                            </div>
-                            <div class="users-list-body">
-                                <h5>Aline McShee</h5>
-                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
-                                <div class="users-list-action action-toggle">
-                                    <div class="dropdown">
-                                        <a data-toggle="dropdown" href="#">
-                                            <i class="ti-more"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a href="#" class="dropdown-item">Open</a>
-                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
-                                            <a href="#" class="dropdown-item">Add to archive</a>
-                                            <a href="#" class="dropdown-item">Delete</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div>
-                                <figure class="avatar">
-                                    <img th:src="@{/hdist/media/img/women_avatar1.jpg}" class="rounded-circle">
-                                </figure>
-                            </div>
-                            <div class="users-list-body">
-                                <h5>Brietta Blogg</h5>
-                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
-                                <div class="users-list-action action-toggle">
-                                    <div class="dropdown">
-                                        <a data-toggle="dropdown" href="#">
-                                            <i class="ti-more"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a href="#" class="dropdown-item">Open</a>
-                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
-                                            <a href="#" class="dropdown-item">Add to archive</a>
-                                            <a href="#" class="dropdown-item">Delete</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div>
-                                <figure class="avatar">
-                                    <img th:src="@{/hdist/media/img/man_avatar3.jpg}" class="rounded-circle">
-                                </figure>
-                            </div>
-                            <div class="users-list-body">
-                                <h5>Karl Hubane</h5>
-                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
-                                <div class="users-list-action action-toggle">
-                                    <div class="dropdown">
-                                        <a data-toggle="dropdown" href="#">
-                                            <i class="ti-more"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a href="#" class="dropdown-item">Open</a>
-                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
-                                            <a href="#" class="dropdown-item">Add to archive</a>
-                                            <a href="#" class="dropdown-item">Delete</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div>
-                                <figure class="avatar">
-                                    <img th:src="@{/hdist/media/img/man_avatar2.jpg}" class="rounded-circle">
-                                </figure>
-                            </div>
-                            <div class="users-list-body">
-                                <h5>Jillana Tows</h5>
-                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
-                                <div class="users-list-action action-toggle">
-                                    <div class="dropdown">
-                                        <a data-toggle="dropdown" href="#">
-                                            <i class="ti-more"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a href="#" class="dropdown-item">Open</a>
-                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
-                                            <a href="#" class="dropdown-item">Add to archive</a>
-                                            <a href="#" class="dropdown-item">Delete</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div>
-                                <figure class="avatar">
-                                    <span class="avatar-title bg-info rounded-circle">AD</span>
-                                </figure>
-                            </div>
-                            <div class="users-list-body">
-                                <h5>Alina Derington</h5>
-                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
-                                <div class="users-list-action action-toggle">
-                                    <div class="dropdown">
-                                        <a data-toggle="dropdown" href="#">
-                                            <i class="ti-more"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a href="#" class="dropdown-item">Open</a>
-                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
-                                            <a href="#" class="dropdown-item">Add to archive</a>
-                                            <a href="#" class="dropdown-item">Delete</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div>
-                                <figure class="avatar">
-                                    <span class="avatar-title bg-warning rounded-circle">S</span>
-                                </figure>
-                            </div>
-                            <div class="users-list-body">
-                                <h5>Stevy Kermeen</h5>
-                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
-                                <div class="users-list-action action-toggle">
-                                    <div class="dropdown">
-                                        <a data-toggle="dropdown" href="#">
-                                            <i class="ti-more"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a href="#" class="dropdown-item">Open</a>
-                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
-                                            <a href="#" class="dropdown-item">Add to archive</a>
-                                            <a href="#" class="dropdown-item">Delete</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div>
-                                <figure class="avatar">
-                                    <img th:src="@{/hdist/media/img/man_avatar1.jpg}" class="rounded-circle">
-                                </figure>
-                            </div>
-                            <div class="users-list-body">
-                                <h5>Stevy Kermeen</h5>
-                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
-                                <div class="users-list-action action-toggle">
-                                    <div class="dropdown">
-                                        <a data-toggle="dropdown" href="#">
-                                            <i class="ti-more"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a href="#" class="dropdown-item">Open</a>
-                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
-                                            <a href="#" class="dropdown-item">Add to archive</a>
-                                            <a href="#" class="dropdown-item">Delete</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div>
-                                <figure class="avatar">
-                                    <img th:src="@{/hdist/media/img/man_avatar5.jpg}" class="rounded-circle">
-                                </figure>
-                            </div>
-                            <div class="users-list-body">
-                                <h5>Gloriane Shimmans</h5>
-                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
-                                <div class="users-list-action action-toggle">
-                                    <div class="dropdown">
-                                        <a data-toggle="dropdown" href="#">
-                                            <i class="ti-more"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a href="#" class="dropdown-item">Open</a>
-                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
-                                            <a href="#" class="dropdown-item">Add to archive</a>
-                                            <a href="#" class="dropdown-item">Delete</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div>
-                                <figure class="avatar">
-                                    <span class="avatar-title bg-secondary rounded-circle">B</span>
-                                </figure>
-                            </div>
-                            <div class="users-list-body">
-                                <h5>Bernhard Perrett</h5>
-                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>
-                                <div class="users-list-action action-toggle">
-                                    <div class="dropdown">
-                                        <a data-toggle="dropdown" href="#">
-                                            <i class="ti-more"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a href="#" class="dropdown-item">Open</a>
-                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>
-                                            <a href="#" class="dropdown-item">Add to archive</a>
-                                            <a href="#" class="dropdown-item">Delete</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <span class="avatar-title bg-success rounded-circle">A</span>-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Aline McShee</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <img th:src="@{/hdist/media/img/women_avatar1.jpg}" class="rounded-circle">-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Brietta Blogg</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <img th:src="@{/hdist/media/img/man_avatar3.jpg}" class="rounded-circle">-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Karl Hubane</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <img th:src="@{/hdist/media/img/man_avatar2.jpg}" class="rounded-circle">-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Jillana Tows</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <span class="avatar-title bg-info rounded-circle">AD</span>-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Alina Derington</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <span class="avatar-title bg-warning rounded-circle">S</span>-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Stevy Kermeen</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <img th:src="@{/hdist/media/img/man_avatar1.jpg}" class="rounded-circle">-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Stevy Kermeen</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <img th:src="@{/hdist/media/img/man_avatar5.jpg}" class="rounded-circle">-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Gloriane Shimmans</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
+<!--                        <li class="list-group-item">-->
+<!--                            <div>-->
+<!--                                <figure class="avatar">-->
+<!--                                    <span class="avatar-title bg-secondary rounded-circle">B</span>-->
+<!--                                </figure>-->
+<!--                            </div>-->
+<!--                            <div class="users-list-body">-->
+<!--                                <h5>Bernhard Perrett</h5>-->
+<!--                                <p>Lorem ipsum dolor sitsdc sdcsdc sdcsdcs</p>-->
+<!--                                <div class="users-list-action action-toggle">-->
+<!--                                    <div class="dropdown">-->
+<!--                                        <a data-toggle="dropdown" href="#">-->
+<!--                                            <i class="ti-more"></i>-->
+<!--                                        </a>-->
+<!--                                        <div class="dropdown-menu dropdown-menu-right">-->
+<!--                                            <a href="#" class="dropdown-item">Open</a>-->
+<!--                                            <a href="#" data-navigation-target="contact-information" class="dropdown-item">Profile</a>-->
+<!--                                            <a href="#" class="dropdown-item">Add to archive</a>-->
+<!--                                            <a href="#" class="dropdown-item">Delete</a>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </li>-->
                     </ul>
                 </div>
             </div>
@@ -1227,10 +1234,10 @@
             <div class="chat-header">
                 <div class="chat-header-user">
                     <figure class="avatar avatar-lg">
-                        <img  th:src="@{/hdist/media/img/man_avatar3.jpg}" class="rounded-circle">
+                        <img  id="currentChatFriendImg"  th:src="@{/hdist/media/img/man_avatar3.jpg}" class="rounded-circle">
                     </figure>
                     <div>
-                        <h5>Karl Hubane</h5>
+                        <h5 id="currentFriendname">youself</h5>
                         <small class="text-muted">
                             <i>Online</i>
                         </small>

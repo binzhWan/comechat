@@ -1,6 +1,7 @@
 package binzh.wan.comechat.service;
 
 import binzh.wan.comechat.pojo.Message;
+import binzh.wan.comechat.pojo.friend;
 import binzh.wan.comechat.pojo.img;
 import binzh.wan.comechat.pojo.User;
 
@@ -18,4 +19,6 @@ public interface UserService {
     public void updataPortrait(Integer userId,  String imgUrl);
     public String queryImgUrlByUserId(Integer userId);
     public void addImgUrlIfPortraitIsNULL(Integer userId,String imgUrl);
+    public void addUser(Integer userId,Integer friendId);
+    public friend checkUserIsExist(Integer userId, Integer friendId);
 }

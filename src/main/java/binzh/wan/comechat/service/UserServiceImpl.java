@@ -2,6 +2,7 @@ package binzh.wan.comechat.service;
 
 import binzh.wan.comechat.mapper.UserMapper;
 import binzh.wan.comechat.pojo.Message;
+import binzh.wan.comechat.pojo.friend;
 import binzh.wan.comechat.pojo.img;
 import binzh.wan.comechat.pojo.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,5 +67,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public void addImgUrlIfPortraitIsNULL(Integer userId, String imgUrl) {
         userMapper.addImgUrlIfPortraitIsNULL(userId,imgUrl);
+    }
+
+    @Override
+    public void addUser(Integer userId, Integer friendId) {
+        userMapper.addUser(userId,friendId);
+    }
+
+    @Override
+    public friend checkUserIsExist(Integer userId, Integer friendId) {
+        return userMapper.checkUserIsExist(userId,friendId);
     }
 }

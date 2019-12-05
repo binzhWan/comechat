@@ -1,6 +1,7 @@
 package binzh.wan.comechat;
 
 import binzh.wan.comechat.pojo.User;
+import binzh.wan.comechat.pojo.friend;
 import binzh.wan.comechat.service.UserServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -19,8 +20,10 @@ class ComechatApplicationTests {
     UserServiceImpl userService;
     @Test
     void contextLoads() {
-        userService.addImgUrlIfPortraitIsNULL(5,"654651");
-        String s = userService.queryImgUrlByUserId(5);
-        System.out.println(s);
+        friend friend = userService.checkUserIsExist(12, 13);
+        System.out.println(friend);
+        userService.addUser(12,13);
+        friend = userService.checkUserIsExist(12, 13);
+        System.out.println(friend);
     }
 }

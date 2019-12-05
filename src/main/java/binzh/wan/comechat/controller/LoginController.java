@@ -44,7 +44,7 @@ public class LoginController {
                 String friendImgUrl = userService.queryImgUrlByUserId(friend.getId());
                 friendsImgUrl.add(friendImgUrl);
                 try {
-                    Integer number = userService.countOneUserNewMegByType(1, user.getId(), friend.getId());
+                    Integer number = userService.countOneUserNewMegByType(2, user.getId(), friend.getId());
                     NewMsgNumbers.add(number);
                 }catch (Exception e){
                     System.out.println("消息为0报异常了");

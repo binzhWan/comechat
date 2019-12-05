@@ -19,9 +19,10 @@ public class RegisterController {
     public String register(User user, Model model){
         user.setRole("1");
         System.out.println(user);
+        System.out.println("-------------------------");
         model.addAttribute("msg","注册成功！");
         userService.addUserByRegisting(user);
-        return "login";
+        return "redirect:/index.html";
     }
     @RequestMapping("/checkUsername")
     @ResponseBody

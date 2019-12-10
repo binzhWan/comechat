@@ -20,10 +20,7 @@ class ComechatApplicationTests {
     UserServiceImpl userService;
     @Test
     void contextLoads() {
-        friend friend = userService.checkUserIsExist(12, 13);
-        System.out.println(friend);
-        userService.addUser(12,13);
-        friend = userService.checkUserIsExist(12, 13);
-        System.out.println(friend);
+        User user = userService.queryUserById(2);
+        System.out.println(user);
     }
 }
